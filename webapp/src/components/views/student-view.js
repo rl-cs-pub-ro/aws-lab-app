@@ -10,15 +10,14 @@ store.addReducers({
   student: studentReducer
 });
 
-// These are the shared styles needed by this element.
 import { SharedStyles } from '../styles/shared-styles.js';
-
-import "../ui/spinner.js";
+import { LoadingSpinner } from "../ui/spinner.js";
 
 class RLAwsStudentView extends connect(store)(PageViewElement) {
   static get properties() {
     return {
       _authFailed: { type: String },
+      _loading: { type: Boolean },
       _creds: { type: Object },
       _labPassword: { type: String },
     };
@@ -28,19 +27,6 @@ class RLAwsStudentView extends connect(store)(PageViewElement) {
     return [
       SharedStyles,
       css`
-        input, button {
-          border: 2px solid #000;
-          padding: 8px;
-          background: white;
-        }
-        button {
-          font-weight: bold;
-        }
-
-        .error {
-          color: #A00;
-          font-weight: bold;
-        }
         .credentials {
           display: inline-block;
           padding: 3px 10px;
@@ -56,6 +42,18 @@ class RLAwsStudentView extends connect(store)(PageViewElement) {
         .success {
           color: #5A5;
         }
+
+        .errorMessage {
+          visibility: hidden; opacity: 0;
+          padding: 10px 0;
+          height: 0; overflow: hidden;
+          transition: visibility 0s, opacity 0.5s linear;
+        }
+        .errorMessage[visible] {
+          visibility: visible; opacity: 1;
+          height: auto; overflow: initial;
+          display: block;
+        }
       `
     ];
   }
@@ -67,14 +65,15 @@ class RLAwsStudentView extends connect(store)(PageViewElement) {
         <p>This page will allocate a unique AWS username and password for use
         with the RL AWS Lab.</p>
         <p>Please enter the lab's password to continue:</p>
-        <p>
-        <input type="text" @input="${this._labPasswordChanged}"
-          @keyup="${this._loginClick}" />
-        <button @click="${this._loginClick}">Proceed</button>
-        <loading-spinner></loading-spinner>
-        <div class="error">${this._authFailed ? 'Authentication failed: ' +
-          this._authFailed : ''}</div>
-        </p>
+        <form class="bordered" @submit="${this._loginSubmit}">
+          <input type="text" @input="${this._labPasswordChanged}"
+            @keyup="${this._loginSubmit}" />
+          <button type="submit">Proceed</button>
+          <loading-spinner ?visible="${this._loading}"></loading-spinner>
+          <div class="error errorMessage" ?visible="${this._authFailed}">
+            ${'Authentication failed: ' + this._authFailed}
+          </div>
+        </form>
       </section>`;
     }
     return html`<section>
@@ -97,18 +96,23 @@ class RLAwsStudentView extends connect(store)(PageViewElement) {
     this._labPassword = event.target.value;
   }
 
-  _loginClick(event) {
+  _loginSubmit(event) {
     if (event.type == "keyup") {
       if (event.keyCode !== 13)
         return;
-      event.preventDefault();
     }
-    store.dispatch(loginStudent(this._labPassword));
+    event.preventDefault();
+    this._authFailed = '';
+    this._loading = true;
+    setTimeout(() => {
+      store.dispatch(loginStudent(this._labPassword));
+    }, 50);
   }
 
   stateChanged(state) {
     this._creds = state.student.credentials;
     this._authFailed = state.student.authFailed;
+    this._loading = false;
   }
 }
 

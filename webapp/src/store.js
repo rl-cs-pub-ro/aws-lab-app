@@ -9,6 +9,7 @@ import thunk from 'redux-thunk';
 import { lazyReducerEnhancer } from 'pwa-helpers/lazy-reducer-enhancer.js';
 
 import appReducer from './reducers/app.js';
+import adminReducer from './reducers/admin.js';
 
 // Sets up a Chrome extension for time travel debugging.
 // See https://github.com/zalmoxisus/redux-devtools-extension for more information.
@@ -28,6 +29,7 @@ export const store = createStore(
 
 // Initially loaded reducers.
 store.addReducers({
-  app: appReducer
+  app: appReducer,
+  admin: adminReducer
 });
 

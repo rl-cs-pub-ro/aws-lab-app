@@ -98,11 +98,17 @@ class RLAwsApp extends connect(store)(LitElement) {
         }
 
         .page {
-          display: none;
+          visibility: hidden;
+          opacity: 0;
+          height: 0; overflow: hidden;
+          transition: visibility 0s, opacity 0.5s linear;
         }
-
         .page[active] {
           display: block;
+          visibility: visible;
+          opacity: 1;
+          height: auto;
+          overflow: initial;
         }
 
         footer {
@@ -135,10 +141,10 @@ class RLAwsApp extends connect(store)(LitElement) {
           Lab
         </h1>
         <nav><div class="container">
-          <div class="toolbar toolbar-left" ?disabled="${this._showAdminMenu}">
+          <div class="toolbar toolbar-left" ?disabled="${this._adminAuthenticated}">
             <a ?selected="${this._page.name === 'student'}" href="/">Student</a>
           </div>
-          <div class="toolbar toolbar-left" ?disabled="${!this._showAdminMenu}">
+          <div class="toolbar toolbar-left" ?disabled="${!this._adminAuthenticated}">
             <a ?selected="${this._page.subpage === 'dashboard'}" href="/">Dashboard</a>
             <a ?selected="${this._page.subpage === 'resources'}" href="/">Resources</a>
           </div>

@@ -3,7 +3,7 @@ import { LitElement, html, css } from 'lit-element';
 class LoadingSpinner extends LitElement {
   static get properties() {
     return {
-      active: { type: Boolean },
+      visible: { type: Boolean },
       message: { type: String }
     };
   }
@@ -20,7 +20,7 @@ class LoadingSpinner extends LitElement {
           margin-left: 10px;
         }
 
-        :host([active]) {
+        :host([visible]) {
           visibility: visible;
         }
 

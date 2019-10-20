@@ -4,24 +4,26 @@ export const GET_STUDENT_RESOURCES = 'ADMIN_GET_STUDENT_RESOURCES';
 export const CLEANUP_USER = 'ADMIN_CLEANUP_USER';
 export const CLEANUP_ALL_USERS = 'ADMIN_CLEANUP_ALL_USERS';
 
-const adminLogin = (username, password) => {
+export const loginAdmin = (username, password) => (dispatch) => {
   let authToken = null;
   let authFailed = '';
 
   if (username == "admin" && password == "123") {
     authToken = "asddf";
   } else {
-    authFailed = "invalid lab password";
+    authFailed = "invalid username or password!";
   }
   
-  return {
-    type: ADMIN_UPDATE_AUTH,
-    authToken: authToken,
-    authFailed: authFailed
-  };
+  setTimeout(() => {
+    dispatch({
+      type: ADMIN_UPDATE_AUTH,
+      authToken: authToken,
+      authFailed: authFailed
+    });
+  }, 1000);
 };
 
-const adminLogout = () => {
+export const logoutAdmin = () => {
   return {
     type: ADMIN_UPDATE_AUTH,
     authToken: null
