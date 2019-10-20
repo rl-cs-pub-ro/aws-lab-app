@@ -1,0 +1,16 @@
+{
+  "name": "RL AWS Lab Management App",
+  "short_name": "RL AWS Lab",
+  "description": "Lab AWS management utility webapp",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#3f51b5",
+  "background_color": "#3f51b5",
+  "icons": [
+    {
+      "src": "images/favicons/android-icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}

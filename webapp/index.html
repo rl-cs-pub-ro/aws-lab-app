@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>RL AWS Lab App</title>
+
+    <meta name="generator" content="PWA Starter Kit">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="RL AWS Management WebApp">
+    <base href="/">
+
+    <link rel="icon" href="images/favicons/favicon.ico">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#3f51b5">
+
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="RL AWS Lab WebApp">
+    <meta property="og:image" content="images/favicons/android-icon-144x144.png" />
+
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+
+    <script>
+      // Load and register pre-caching Service Worker
+      /*if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('service-worker.js', {
+            scope: '/',
+          });
+        });
+      }*/
+      // Redux assumes `process.env.NODE_ENV` exists in the ES module build.
+      // https://github.com/reactjs/redux/issues/2907
+      window.process = { env: { NODE_ENV: 'production' } };
+    </script>
+
+    <!-- Add any global styles for body, document, etc. -->
+    <style>
+      body {
+        margin: 0;
+        /* This is a font-stack that tries to use the system-default sans-serifs first */
+        font-family: Helvetica, Arial, sans-serif;
+        line-height: 1.5;
+        min-height: 100vh;
+        -webkit-font-smoothing: antialiased;
+      }
+    </style>
+  </head>
+  <body>
+    <rl-aws-app></rl-aws-app>
+    <noscript>
+      Please enable JavaScript to view this website.
+    </noscript>
+    <!-- Load webcomponents-loader.js to check and load any polyfills your browser needs -->
+    <script src="node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
+    <!-- Built with love using PWA Starter Kit -->
+    <script type="module" src="src/components/main-app.js"></script>
+  </body>
+</html>
