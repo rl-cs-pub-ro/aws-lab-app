@@ -4,6 +4,8 @@ import os
 import cherrypy
 
 from ._utils import send_json_error
+from .student import StudentController
+from lib.aws.tasks import RetrieveStudentUsers
 
 
 class AwsWebApp():
@@ -15,8 +17,11 @@ class AwsWebApp():
         self._store = store
 
         cherrypy.tree.mount(self, "/", self._cherry_config())
+        self._student = StudentController(app=self)
 
         cherrypy.engine.subscribe('stop', self._on_stop)
+
+        self._init_users()
 
     def start(self):
         """ Starts the application server. """
@@ -41,7 +46,7 @@ class AwsWebApp():
 
     def _cherry_config(self):
         return {
-        '/': {
+            '/': {
                 # 'tools.sessions.on': True,
                 'tools.staticdir.root': os.path.abspath(os.getcwd()),
                 'tools.staticdir.on': True,
@@ -50,7 +55,7 @@ class AwsWebApp():
                 'tools.encode.on': True,
                 'tools.encode.encoding': 'utf-8',
                 'error_page.default': send_json_error,
-        },
+            },
         }
 
     @cherrypy.expose(alias="apiConfig.json")
@@ -58,5 +63,14 @@ class AwsWebApp():
     def config_json(self):
         return {
             "apiURL": ""  # use the HTTP origin
-    }
+        }
+
+    def _init_users(self):
+        user_pattern = self._config["data_store"]["student"]["user_pattern"]
+        task = RetrieveStudentUsers(pattern=user_pattern)
+        future = self.thread_pool.queue_task(task)
+        # wait for completion
+        users = future.result(timeout=10)
+        self._store.users.load_existing_users(users)
+        
 
