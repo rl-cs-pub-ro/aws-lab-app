@@ -13,7 +13,7 @@ store.addReducers({
 import { SharedStyles } from '../styles/shared-styles.js';
 import { LoadingSpinner } from "../ui/spinner.js";
 
-class RLAwsStudentView extends connect(store)(PageViewElement) {
+export class RLAwsStudentView extends connect(store)(PageViewElement) {
   static get properties() {
     return {
       _authFailed: { type: String },

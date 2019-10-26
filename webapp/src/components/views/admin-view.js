@@ -9,7 +9,8 @@ import { loginAdmin, logoutAdmin } from '../../actions/admin.js';
 import { SharedStyles } from '../styles/shared-styles.js';
 import { LoginForm } from '../ui/login-form.js';
 
-class RLAwsAdminView extends connect(store)(PageViewElement) {
+
+export class RLAwsAdminView extends connect(store)(PageViewElement) {
   static get properties() {
     return {
       _authenticated: { type: Boolean },

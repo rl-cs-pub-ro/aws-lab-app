@@ -19,7 +19,7 @@ import { RLAwsStudentView } from "./views/student-view.js";
 import { RLAwsAdminView } from "./views/admin-view.js";
 import { Error404View } from "./views/error-404.js";
 
-class RLAwsApp extends connect(store)(LitElement) {
+export class RLAwsApp extends connect(store)(LitElement) {
   static get properties() {
     return {
       _appTitle: { type: String },

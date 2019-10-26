@@ -1,6 +1,6 @@
 import { LitElement, html, css } from 'lit-element';
 
-class LoadingSpinner extends LitElement {
+export class LoadingSpinner extends LitElement {
   static get properties() {
     return {
       visible: { type: Boolean },
@@ -178,4 +178,6 @@ class LoadingSpinner extends LitElement {
 }
 
 window.customElements.define('loading-spinner', LoadingSpinner);
+
+export default LoadingSpinner;
 

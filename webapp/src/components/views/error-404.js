@@ -4,7 +4,7 @@ import { PageViewElement } from '../page-view-element.js';
 // These are the shared styles needed by this element.
 import { SharedStyles } from '../styles/shared-styles.js';
 
-class Error404View extends PageViewElement {
+export class Error404View extends PageViewElement {
   static get styles() {
     return [
       SharedStyles

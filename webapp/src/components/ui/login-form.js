@@ -4,7 +4,7 @@ import { SharedStyles } from '../styles/shared-styles.js';
 import { LoadingSpinner } from "../ui/spinner.js";
 
 
-class LoginForm extends LitElement {
+export class LoginForm extends LitElement {
   static get properties() {
     return {
       loading: { type: Boolean, attribute: "loading" },
@@ -91,4 +91,6 @@ class LoginForm extends LitElement {
 }
 
 window.customElements.define('login-form', LoginForm);
+
+export default LoginForm;
 
