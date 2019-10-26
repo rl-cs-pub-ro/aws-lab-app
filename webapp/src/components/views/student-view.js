@@ -17,7 +17,8 @@ class RLAwsStudentView extends connect(store)(PageViewElement) {
   static get properties() {
     return {
       _authFailed: { type: String },
-      _loading: { type: Boolean },
+      _loadingApp: { type: Boolean },
+      _loadingAction: { type: Boolean },
       _creds: { type: Object },
       _labPassword: { type: String },
     };
@@ -59,9 +60,14 @@ class RLAwsStudentView extends connect(store)(PageViewElement) {
   }
 
   render() {
+    if (this._loadingApp) {
+      return html`
+          <h3><i>Loading, please wait...</i></h3>
+        `;
+    }
     if (!this._creds) {
       return html`<section>
-        <h2>AWS Student Accounts</h2>
+        <h2>AWS Student Account</h2>
         <p>This page will allocate a unique AWS username and password for use
         with the RL AWS Lab.</p>
         <p>Please enter the lab's password to continue:</p>
@@ -69,7 +75,7 @@ class RLAwsStudentView extends connect(store)(PageViewElement) {
           <input type="text" @input="${this._labPasswordChanged}"
             @keyup="${this._loginSubmit}" />
           <button type="submit">Proceed</button>
-          <loading-spinner ?visible="${this._loading}"></loading-spinner>
+          <loading-spinner ?visible="${this._loadingAction}"></loading-spinner>
           <div class="error errorMessage" ?visible="${this._authFailed}">
             ${'Authentication failed: ' + this._authFailed}
           </div>
@@ -77,18 +83,19 @@ class RLAwsStudentView extends connect(store)(PageViewElement) {
       </section>`;
     }
     return html`<section>
-      <h2>AWS Student Accounts</h2>
+      <h2>AWS Student Account</h2>
       <h3 class="success">Authentication successful!</h3>
       <p>Here's your AWS credentials:</p>
       <p>
         <b>AWS Management Console</b>: TODO<br />
-        <b>Username</b>: <span class="credentials">${this._creds.name}</span><br />
+        <b>Username</b>: <span class="credentials">${this._creds.username}</span><br />
         <b>Password</b>: <span class="credentials password">${this._creds.password}</span>
       </p>
     </section>`;
   }
 
   firstUpdated() {
+    this._loadingApp = true;
     store.dispatch(loadStudentCredentials());
   }
 
@@ -103,7 +110,7 @@ class RLAwsStudentView extends connect(store)(PageViewElement) {
     }
     event.preventDefault();
     this._authFailed = '';
-    this._loading = true;
+    this._loadingAction = true;
     setTimeout(() => {
       store.dispatch(loginStudent(this._labPassword));
     }, 50);
@@ -112,7 +119,8 @@ class RLAwsStudentView extends connect(store)(PageViewElement) {
   stateChanged(state) {
     this._creds = state.student.credentials;
     this._authFailed = state.student.authFailed;
-    this._loading = false;
+    this._loadingApp = state.student.loading;
+    this._loadingAction = false;
   }
 }
 
