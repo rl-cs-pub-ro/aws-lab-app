@@ -4,7 +4,7 @@ import { PageViewElement } from '../page-view-element.js';
 
 // This element is connected to the Redux store.
 import { store } from '../../store.js';
-import { loginAdmin, logoutAdmin } from '../../actions/admin.js';
+import { loginAdmin, loadAdminCredentials } from '../../actions/admin.js';
 
 import { SharedStyles } from '../styles/shared-styles.js';
 import { LoginForm } from '../ui/login-form.js';
@@ -17,7 +17,7 @@ export class RLAwsAdminView extends connect(store)(PageViewElement) {
       _authenticated: { type: Boolean },
       _authFailed: { type: String },
       _subpage: { type: String },
-      _loading: { type: Boolean },
+      _authLoading: { type: Boolean },
     };
   }
 
@@ -48,7 +48,7 @@ export class RLAwsAdminView extends connect(store)(PageViewElement) {
       return html`<section>
         <h2>Administrator Panel</h2>
         <login-form @form-submitted="${this._formSubmitted}" auth-error="${this._authFailed}"
-            ?loading="${this._loading}">
+            ?loading="${this._authLoading}">
           <p style="font-weight: bold;">STAHP! Only authorized personnel can proceed!</p>
         </login-form>
         <br>
@@ -60,19 +60,24 @@ export class RLAwsAdminView extends connect(store)(PageViewElement) {
     `;
   }
 
+  firstUpdated() {
+    this._authLoading = true;
+    store.dispatch(loadAdminCredentials());
+  }
+
   _formSubmitted(event) {
-    this._loading = true;
+    this._authLoading = true;
     this._authFailed = '';
     store.dispatch(loginAdmin(event.detail.username, event.detail.password));
   }
 
   // This is called every time something is updated in the store.
   stateChanged(state) {
-    this._authenticated = !!state.admin.authToken;
-    this._authFailed = state.admin.authFailed;
     let subpageObj = state.app.page.subpage;
     this._subpage = subpageObj ? subpageObj.name : "dashboard";
-    this._loading = false;
+    this._authenticated = state.admin.authStatus;
+    this._authFailed = state.admin.authError;
+    this._authLoading = !state.admin.authLoaded;
   }
 }
 

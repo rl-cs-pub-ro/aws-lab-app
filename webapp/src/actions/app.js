@@ -23,12 +23,10 @@ export const navigate = (path) => (dispatch) => {
   // Extract the page name from path.
   const segments = path.split("/").filter((val) => (!!val));
   const page = (segments.length == 0 ? DEFAULT_PAGE : segments[0]);
-  console.log("PATH", path, segments, page);
   dispatch(loadPage(page, segments.slice(1)));
 };
 
 const loadPage = (page, pageComponents) => (dispatch) => {
-  console.log("LOAD", page, pageComponents);
   let pageDescriptor = PAGES[page];
   if (!pageDescriptor) {
     page = 'error404';
@@ -51,6 +49,7 @@ const updatePage = (page) => {
 };
 
 export const showAppError = (err) => {
+  if (console.error) console.error(err);
   return { type: APP_ERROR, error: err };
 };
 

@@ -1,11 +1,11 @@
 import { RLAwsStudent } from "../model/student.js";
+import { loadConfig } from "../model/config.js";
 
 import { showAppError } from "./app.js";
 
 export const STUDENT_UPDATE = "STUDENT_LOGIN";
 
 let studentModel = null;
-import { loadConfig } from "../model/config.js";
 let studentPromise = loadConfig().then((apiConfig) => {
   studentModel = new RLAwsStudent({
     apiServer: apiConfig.apiURL,

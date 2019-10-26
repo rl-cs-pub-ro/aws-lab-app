@@ -4,7 +4,7 @@ import { PageViewElement } from '../page-view-element.js';
 
 // This element is connected to the Redux store.
 import { store } from '../../store.js';
-import { getStudentUsers } from '../../actions/admin.js';
+import { loadStudentUsers } from '../../actions/admin.js';
 
 import { SharedStyles } from '../styles/shared-styles.js';
 
@@ -27,6 +27,10 @@ export class RLAwsAdminDashboard extends connect(store)(PageViewElement) {
       <h3>AWS Dashboard</h3>
       <p></p>
     </section>`;
+  }
+
+  firstUpdated() {
+    store.dispatch(loadStudentUsers());
   }
 
   _formSubmitted(event) {

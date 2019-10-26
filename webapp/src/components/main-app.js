@@ -14,7 +14,7 @@ import {
   updateOffline,
   updateLayout
 } from '../actions/app.js';
-import { logoutAdmin } from '../actions/admin.js'
+import { logoutAdmin } from '../actions/admin.js';
 
 import { RLAwsStudentView } from "./views/student-view.js";
 import { RLAwsAdminView } from "./views/admin-view.js";
@@ -25,7 +25,7 @@ export class RLAwsApp extends connect(store)(LitElement) {
     return {
       _appTitle: { type: String },
       _page: { type: String },
-      _adminUser: { type: Object },
+      _adminAuth: { type: Boolean },
       _showAdminMenu: { type: Boolean },
       _offline: { type: Boolean }
     };
@@ -200,10 +200,9 @@ export class RLAwsApp extends connect(store)(LitElement) {
   }
 
   stateChanged(state) {
-    console.log(state.app.page);
     this._page = state.app.page;
-    this._adminUser = !!state.admin.authToken;
-    this._showAdminMenu = (this._page.name == 'admin' && this._adminUser);
+    this._adminAuth = state.admin.authStatus;
+    this._showAdminMenu = (this._page.name == 'admin' && this._adminAuth);
     // this._pageTitle = state.app.page.title;
     this._offline = state.app.offline;
   }

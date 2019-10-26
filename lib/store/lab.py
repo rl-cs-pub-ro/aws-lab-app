@@ -1,4 +1,4 @@
-""" Synchronized (multithread) store for the student accounts. """
+""" Synchronized (multithread) store for the lab vars. """
 
 import os.path
 from threading import Lock

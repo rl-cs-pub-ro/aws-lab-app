@@ -5,36 +5,66 @@ import { RLAwsAPI } from './api.js';
 const localStorage = window.localStorage;
 const adminKey = 'rlAwsAdminCredentials';
 
+
 export class RLAwsAdmin extends RLAwsAPI {
 
-  constructor() {
+  constructor(options) {
+    super(options);
   }
 
   getStoredCredentials() {
-    let credentials = localStorage.getItem(adminKey);
+    let credentials = null;
+    try {
+      credentials = localStorage.getItem(adminKey);
+      if (credentials)
+        credentials = JSON.parse(credentials);
+    } catch(e) {
+      if (console.error)
+        console.error("Invalid localStorage object", e);
+    }
     if (credentials) {
-      // check the credentials online
-      this._checkCredentials()
-        .then((res) => true, (err) => {
+      // check the auth token
+      return this._checkCredentials(credentials)
+        .then((resp) => true)
+        .catch((err) => {
           this.resetCredentials();
-		  return null;
+          return null;
         });
     }
     return Promise.resolve(null);
   }
 
   login(username, password) {
-    let newToken = null;
-    this._authToken = newToken;
+    return this.post("/admin/login")
+      .send({
+        username: username,
+        password: password,
+      })
+      .then((resp) => {
+        let creds = { token: resp.body.auth_token };
+        this.setAuthToken(creds.token);
+        this.storeCredentials(creds);
+        return creds;
+      }, (err) => {
+        this.resetCredentials();
+        throw this._errorMessage(err);
+      });
   }
 
-  checkLogin() {
-    return this.get("/auth/check")
+  logout() {
+    this.resetCredentials();
+    return Promise.resolve(true);
+  }
+
+  _checkCredentials(credentials) {
+    return this.get("/admin/check")
+      .set('X-Auth-Token', credentials.token)
       .then((resp) => {
+        this.setAuthToken(credentials.token);
         return true;
       }, (err) => {
         this._authToken = null;
-        return false;
+        throw err;
       });
   }
 
@@ -42,29 +72,14 @@ export class RLAwsAdmin extends RLAwsAPI {
     return !!this._authToken;
   }
 
-  _checkCredentials(creds) {
-    this.get("/student/check")
-      .send(creds);
-  }
-
-  fetchNewCredentials() {
-    return this.post("/student/newCredentials")
-      .send({"please": true}) // well, nothing is really required
-      .then((creds) => {
-        this.storeCredentials(creds);
-        return creds;
-      }, (err) => {
-        this.resetCredentials();
-        return err;
-      });
-  }
-
   storeCredentials(creds) {
-    localStorage.setItem(studentKey, creds);
+    // only store the username and the token
+    localStorage.setItem(adminKey, JSON.stringify(creds));
   }
 
   resetCredentials(creds) {
-    localStorage.removeItem(studentKey);
+    this.setAuthToken(null);
+    localStorage.removeItem(adminKey);
   }
 }
 

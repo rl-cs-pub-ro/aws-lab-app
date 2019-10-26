@@ -5,6 +5,7 @@ import os.path
 from ._file import FileStore
 from .users import StudentAccountsStore
 from .lab import LabVarsStore
+from .admin import AdminAuthStore
 
 
 class ApplicationStore():
@@ -20,6 +21,7 @@ class ApplicationStore():
             self._config.update(config)
         self._users = StudentAccountsStore(self._config)
         self._lab = LabVarsStore(self._config)
+        self._admin = AdminAuthStore(self._config)
 
     @property
     def users(self):
@@ -30,4 +32,9 @@ class ApplicationStore():
     def lab(self):
         """ Returns the lab vars store. """
         return self._lab
+
+    @property
+    def admin(self):
+        """ Returns the admin store. """
+        return self._admin
 

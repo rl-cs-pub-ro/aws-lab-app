@@ -2,9 +2,11 @@
 
 import os
 import cherrypy
+import cherrypy_cors
 
 from ._utils import send_json_error
 from .student import StudentController
+from .admin import AdminController
 from lib.aws.tasks import RetrieveStudentUsers
 
 
@@ -16,8 +18,10 @@ class AwsWebApp():
         self._pool = thread_pool
         self._store = store
 
+        cherrypy_cors.install()
         cherrypy.tree.mount(self, "/", self._cherry_config())
         self._student = StudentController(app=self)
+        self._admin = AdminController(app=self)
 
         cherrypy.engine.subscribe('stop', self._on_stop)
 

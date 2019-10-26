@@ -3,6 +3,7 @@
 from collections.abc import Mapping
 import logging
 import cherrypy
+import cherrypy_cors
 
 from ..aws.tasks import ChangeUserPassword
 from ..model.student_users import StudentAccountException
@@ -26,7 +27,8 @@ class StudentController():
     def _cherry_config(self):
         return {
             "/": {
-                'error_page.default': send_json_error
+                'error_page.default': send_json_error,
+                'cors.expose.on': True,
             }
         }
 
@@ -35,6 +37,9 @@ class StudentController():
     @cherrypy.tools.json_in()
     def check(self):
         """ Checks the user's token and returns its password + extra data. """
+        if cherrypy.request.method == 'OPTIONS':
+            cherrypy_cors.preflight(allowed_methods=['GET', 'POST'])
+            return
         if cherrypy.request.method != "POST":
             raise cherrypy.HTTPError(400, "Invalid request (%s)" % cherrypy.request.method)
         args = cherrypy.request.json
@@ -45,6 +50,9 @@ class StudentController():
     @cherrypy.tools.json_out()
     @cherrypy.tools.json_in()
     def new_credentials(self):
+        if cherrypy.request.method == 'OPTIONS':
+            cherrypy_cors.preflight(allowed_methods=['GET', 'POST'])
+            return
         if cherrypy.request.method != "POST":
             raise cherrypy.HTTPError(400, "Invalid request (%s)" % cherrypy.request.method)
         args = cherrypy.request.json
@@ -76,6 +84,9 @@ class StudentController():
     @cherrypy.tools.json_out()
     def reset_password(self):
         """ Resets the password of the user. """
+        if cherrypy.request.method == 'OPTIONS':
+            cherrypy_cors.preflight(allowed_methods=['GET', 'POST'])
+            return
         if cherrypy.request.method != "POST":
             raise cherrypy.HTTPError(400, "Invalid request (%s)" % cherrypy.request.method)
         args = cherrypy.request.json
