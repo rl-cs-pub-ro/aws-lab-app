@@ -29,6 +29,8 @@ class AdminController():
             "/": {
                 'error_page.default': send_json_error,
                 'cors.expose.on': True,
+                'tools.json_in.on': True,
+                'tools.json_out.on': True,
             }
         }
 
@@ -39,8 +41,6 @@ class AdminController():
             raise cherrypy.HTTPError(401, "Not Authenticated")
 
     @cherrypy.expose()
-    @cherrypy.tools.json_out()
-    @cherrypy.tools.json_in()
     def check(self):
         """ Checks the admin's token and returns whether it's still valid. """
         if cherrypy.request.method == 'OPTIONS':
@@ -51,8 +51,6 @@ class AdminController():
         return {"success": True}
 
     @cherrypy.expose()
-    @cherrypy.tools.json_out()
-    @cherrypy.tools.json_in()
     def login(self):
         """ Authenticates the administrator """
         if cherrypy.request.method == 'OPTIONS':

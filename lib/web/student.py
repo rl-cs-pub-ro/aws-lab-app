@@ -29,12 +29,12 @@ class StudentController():
             "/": {
                 'error_page.default': send_json_error,
                 'cors.expose.on': True,
+                'tools.json_in.on': True,
+                'tools.json_out.on': True,
             }
         }
 
     @cherrypy.expose()
-    @cherrypy.tools.json_out()
-    @cherrypy.tools.json_in()
     def check(self):
         """ Checks the user's token and returns its password + extra data. """
         if cherrypy.request.method == 'OPTIONS':
@@ -47,8 +47,6 @@ class StudentController():
         return self._get_extra_creds(user_obj)
 
     @cherrypy.expose(alias="newCredentials")
-    @cherrypy.tools.json_out()
-    @cherrypy.tools.json_in()
     def new_credentials(self):
         if cherrypy.request.method == 'OPTIONS':
             cherrypy_cors.preflight(allowed_methods=['GET', 'POST'])
@@ -80,8 +78,6 @@ class StudentController():
         return self._get_extra_creds(user_obj)
 
     @cherrypy.expose(alias="resetPassword")
-    @cherrypy.tools.json_in()
-    @cherrypy.tools.json_out()
     def reset_password(self):
         """ Resets the password of the user. """
         if cherrypy.request.method == 'OPTIONS':
