@@ -1,0 +1,17 @@
+# RL AWS web service configuration file example
+aws:
+  region: eu-west-1
+  # note: secrets loaded from separate secrets.yaml!
+
+data_store:
+  path: "./data"
+  student:
+    user_pattern: "student[0-9]+"
+
+server:
+  workers: 3
+  static_path: "webapp/build/es6-bundled/"
+
+# use a separate file to store the secrets (outside VCS / protected permissions)
+secrets_file: "secrets.yaml"
+

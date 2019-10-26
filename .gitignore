@@ -32,3 +32,8 @@ htmlcov/
 .venv
 venv
 
+# secrets & data
+config.yaml
+secrets.yaml
+data/
+
