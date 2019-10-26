@@ -10,8 +10,7 @@ const PAGES = {
     title: "Admin", requiresLogin: true,
     subpages: {
       "index": "Dashboard",
-      "users": "Users",
-      "resdources": "AWS Resources",
+      "resources": "AWS Resources",
     }
   },
   "error404": {
@@ -22,20 +21,29 @@ const DEFAULT_PAGE = 'student';
 
 export const navigate = (path) => (dispatch) => {
   // Extract the page name from path.
-  const page = path === '/' ? DEFAULT_PAGE : path.slice(1);
-  dispatch(loadPage(page));
+  const segments = path.split("/").filter((val) => (!!val));
+  const page = (segments.length == 0 ? DEFAULT_PAGE : segments[0]);
+  console.log("PATH", path, segments, page);
+  dispatch(loadPage(page, segments.slice(1)));
 };
 
-const loadPage = (page) => (dispatch) => {
-  let pageObj = null;
-  if (PAGES[page]) {
-    pageObj = PAGES[page];
-  } else {
-    pageObj = PAGES.error404;
+const loadPage = (page, pageComponents) => (dispatch) => {
+  console.log("LOAD", page, pageComponents);
+  let pageDescriptor = PAGES[page];
+  if (!pageDescriptor) {
     page = 'error404';
+    pageDescriptor = PAGES[page];
   }
-
-  dispatch(updatePage({ ...pageObj, name: page }));
+  let pageObj = { name: page, title: pageDescriptor.title };
+  if (pageComponents && pageComponents.length) {
+    let subpage = pageComponents[0];
+    if (pageDescriptor.subpages && pageDescriptor.subpages[subpage]) {
+      pageObj.subpage = { ...pageDescriptor.subpages[subpage], name: subpage };
+    } else {
+      pageObj = { name: 'error404', title: PAGES.error404.title };
+    }
+  }
+  dispatch(updatePage(pageObj));
 };
 
 const updatePage = (page) => {

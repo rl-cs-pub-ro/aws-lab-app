@@ -8,6 +8,7 @@ import { loginAdmin, logoutAdmin } from '../../actions/admin.js';
 
 import { SharedStyles } from '../styles/shared-styles.js';
 import { LoginForm } from '../ui/login-form.js';
+import { RLAwsAdminDashboard } from './admin-dashboard.js';
 
 
 export class RLAwsAdminView extends connect(store)(PageViewElement) {
@@ -15,13 +16,30 @@ export class RLAwsAdminView extends connect(store)(PageViewElement) {
     return {
       _authenticated: { type: Boolean },
       _authFailed: { type: String },
+      _subpage: { type: String },
       _loading: { type: Boolean },
     };
   }
 
   static get styles() {
     return [
-      SharedStyles
+      SharedStyles,
+      css`
+        .page {
+          visibility: hidden;
+          opacity: 0;
+          height: 0; overflow: hidden;
+          transition: visibility 0s, opacity 0.5s linear;
+        }
+        .page[active] {
+          display: block;
+          visibility: visible;
+          opacity: 1;
+          height: auto;
+          overflow: initial;
+        }
+
+      `
     ];
   }
 
@@ -36,10 +54,10 @@ export class RLAwsAdminView extends connect(store)(PageViewElement) {
         <br>
       </section>`;
     }
-    return html`<section>
-      <h2>Administrator Panel</h2>
-      <p>Welcome, <b>admin</b>! Your wish is my command ;)</p>
-    </section>`;
+    return html`
+      <rl-admin-dashboard class="page" ?active="${this._subpage ===
+        'dashboard'}"> </rl-admin-dashboard>
+    `;
   }
 
   _formSubmitted(event) {
@@ -52,6 +70,8 @@ export class RLAwsAdminView extends connect(store)(PageViewElement) {
   stateChanged(state) {
     this._authenticated = !!state.admin.authToken;
     this._authFailed = state.admin.authFailed;
+    let subpageObj = state.app.page.subpage;
+    this._subpage = subpageObj ? subpageObj.name : "dashboard";
     this._loading = false;
   }
 }

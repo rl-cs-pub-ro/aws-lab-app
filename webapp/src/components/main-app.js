@@ -14,6 +14,7 @@ import {
   updateOffline,
   updateLayout
 } from '../actions/app.js';
+import { logoutAdmin } from '../actions/admin.js'
 
 import { RLAwsStudentView } from "./views/student-view.js";
 import { RLAwsAdminView } from "./views/admin-view.js";
@@ -144,16 +145,22 @@ export class RLAwsApp extends connect(store)(LitElement) {
           Lab
         </h1>
         <nav><div class="container">
-          <div class="toolbar toolbar-left" ?disabled="${this._adminAuthenticated}">
-            <a ?selected="${this._page.name === 'student'}" href="/">Student</a>
-          </div>
-          <div class="toolbar toolbar-left" ?disabled="${!this._adminAuthenticated}">
-            <a ?selected="${this._page.subpage === 'dashboard'}" href="/">Dashboard</a>
-            <a ?selected="${this._page.subpage === 'resources'}" href="/">Resources</a>
-          </div>
-          <div class="toolbar toolbar-right">
-            <a ?selected="${this._page.name === 'admin'}" class="admin" href="/admin">Admin</a>
-          </div>
+          ${ !this._showAdminMenu ? html`
+            <div class="toolbar toolbar-left">
+              <a ?selected="${this._page.name === 'student'}" href="/">Student</a>
+            </div>
+            <div class="toolbar toolbar-right">
+              <a ?selected="${this._page.name === 'admin'}" class="admin" href="/admin">Admin</a>
+            </div>
+          ` : html`
+            <div class="toolbar toolbar-left">
+              <a ?selected="${this._page.subpage === 'dashboard'}" href="/admin/">Dashboard</a>
+              <a ?selected="${this._page.subpage === 'resources'}" href="/admin/resources">Resources</a>
+            </div>
+            <div class="toolbar toolbar-right">
+              <a class="admin" href="#" @click="${this._adminLogout}">Logout</a>
+            </div>
+          `}
         </div></nav>
       </header>
 
@@ -188,9 +195,14 @@ export class RLAwsApp extends connect(store)(LitElement) {
     }
   }
 
+  _adminLogout() {
+    store.dispatch(logoutAdmin());
+  }
+
   stateChanged(state) {
+    console.log(state.app.page);
     this._page = state.app.page;
-    this._adminUser = state.app.adminUser;
+    this._adminUser = !!state.admin.authToken;
     this._showAdminMenu = (this._page.name == 'admin' && this._adminUser);
     // this._pageTitle = state.app.page.title;
     this._offline = state.app.offline;

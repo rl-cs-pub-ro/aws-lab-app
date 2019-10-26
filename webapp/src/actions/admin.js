@@ -4,6 +4,7 @@ export const GET_STUDENT_RESOURCES = 'ADMIN_GET_STUDENT_RESOURCES';
 export const CLEANUP_USER = 'ADMIN_CLEANUP_USER';
 export const CLEANUP_ALL_USERS = 'ADMIN_CLEANUP_ALL_USERS';
 
+
 export const loginAdmin = (username, password) => (dispatch) => {
   let authToken = null;
   let authFailed = '';
