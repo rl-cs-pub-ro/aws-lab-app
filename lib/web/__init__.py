@@ -1,8 +1,8 @@
 """ Package definitions for the web application. """
 
 
-from .app import webapp_start
+from .app import AwsWebApp
 
 
-__ALL__ = ['webapp_start']
+__ALL__ = ['AwsWebApp']
 
