@@ -15,6 +15,9 @@ import {
   updateLayout
 } from '../actions/app.js';
 
+import { RLAwsStudentView } from "./views/student-view.js";
+import { RLAwsAdminView } from "./views/admin-view.js";
+import { Error404View } from "./views/error-404.js";
 
 class RLAwsApp extends connect(store)(LitElement) {
   static get properties() {

@@ -1,6 +1,7 @@
 import {
   UPDATE_PAGE,
   UPDATE_OFFLINE,
+  APP_ERROR,
 } from '../actions/app.js';
 
 const INITIAL_STATE = {
@@ -23,6 +24,10 @@ const appReducer = (state, action) => {
       return {
         ...state,
         offline: action.offline
+      };
+    case APP_ERROR:
+      return {
+        ...state, error_message: action.error
       };
     default:
       return state;

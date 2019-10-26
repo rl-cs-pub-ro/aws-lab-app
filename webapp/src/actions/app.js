@@ -1,14 +1,13 @@
 export const UPDATE_PAGE = 'UPDATE_PAGE';
 export const UPDATE_OFFLINE = 'UPDATE_OFFLINE';
+export const APP_ERROR = 'APP_ERROR';
 
 const PAGES = {
   "student": {
     title: "Student",
-    component: "student-view.js"
   },
   "admin": {
     title: "Admin", requiresLogin: true,
-    component: "admin-view.js",
     subpages: {
       "index": "Dashboard",
       "users": "Users",
@@ -17,7 +16,6 @@ const PAGES = {
   },
   "error404": {
     title: "Error 404",
-    component: "error-404.js"
   }
 };
 const DEFAULT_PAGE = 'student';
@@ -36,19 +34,16 @@ const loadPage = (page) => (dispatch) => {
     pageObj = PAGES.error404;
     page = 'error404';
   }
-  import("../components/views/" + pageObj.component);
 
-  dispatch(updatePage({
-    ...pageObj,
-    name: page
-  }));
+  dispatch(updatePage({ ...pageObj, name: page }));
 };
 
 const updatePage = (page) => {
-  return {
-    type: UPDATE_PAGE,
-    page
-  };
+  return { type: UPDATE_PAGE, page };
+};
+
+export const showAppError = (err) => {
+  return { type: APP_ERROR, error: err };
 };
 
 export const updateOffline = (offline) => (dispatch, getState) => {
