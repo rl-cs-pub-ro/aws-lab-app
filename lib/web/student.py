@@ -6,6 +6,7 @@ import cherrypy
 
 from ..aws.tasks import ChangeUserPassword
 from ..model.student_users import StudentAccountException
+from ..aws.utils import get_aws_url
 
 from ._utils import send_json_error
 
@@ -33,12 +34,12 @@ class StudentController():
     @cherrypy.tools.json_out()
     @cherrypy.tools.json_in()
     def check(self):
-        """ Checks the user's token and returns its password. """
+        """ Checks the user's token and returns its password + extra data. """
         if cherrypy.request.method != "POST":
             raise cherrypy.HTTPError(400, "Invalid request (%s)" % cherrypy.request.method)
         args = cherrypy.request.json
-        self._check_user(args)
-        return {"success": True}
+        user_obj = self._check_user(args)
+        return self._get_extra_creds(user_obj)
 
     @cherrypy.expose(alias="newCredentials")
     @cherrypy.tools.json_out()
@@ -68,11 +69,7 @@ class StudentController():
         # we need to return the token ASAP
         self._app.thread_pool.queue_task(task)
 
-        return {
-            "username": user_obj.username,
-            "token": user_obj.alloc_token,
-            "password": user_obj.password,
-        }
+        return self._get_extra_creds(user_obj)
 
     @cherrypy.expose(alias="resetPassword")
     @cherrypy.tools.json_in()
@@ -92,11 +89,7 @@ class StudentController():
             # wait for completion
             future.result(timeout=TASK_TIMEOUT)
             # return the token
-            return {
-                "username": user_obj.username,
-                "token": user_obj.alloc_token,
-                "password": user_obj.password
-            }
+            return self._get_extra_creds(user_obj)
 
         except Exception as ex:
             raise cherrypy.HTTPError(500, "Error: %s" % str(ex))
@@ -111,4 +104,13 @@ class StudentController():
         if not user_obj.alloc_token or user_obj.alloc_token != args["token"]:
             raise cherrypy.HTTPError(400, "Invalid token for %s" % args["username"])
         return user_obj
+
+    def _get_extra_creds(self, user_obj):
+        """ Returns an object with user credentials + extra data (URL). """
+        return {
+            "username": user_obj.username,
+            "token": user_obj.alloc_token,
+            "password": user_obj.password,
+            "url": get_aws_url(self._app.config["aws"]),
+        }
 

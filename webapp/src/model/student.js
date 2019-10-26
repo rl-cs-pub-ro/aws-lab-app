@@ -24,7 +24,8 @@ export class RLAwsStudent extends RLAwsAPI {
     if (credentials) {
       // check the credentials online
       return this._checkCredentials(credentials)
-        .then((resp) => credentials)
+        // response has extra data, so return it instead
+        .then((resp) => resp.body)
         .catch((err) => {
           this.resetCredentials();
           return null;
@@ -53,7 +54,11 @@ export class RLAwsStudent extends RLAwsAPI {
   }
 
   storeCredentials(creds) {
-    localStorage.setItem(studentKey, JSON.stringify(creds));
+    // only store the username and the token
+    localStorage.setItem(studentKey, JSON.stringify({
+        username: creds.username,
+        token: creds.token,
+      }));
   }
 
   resetCredentials(creds) {

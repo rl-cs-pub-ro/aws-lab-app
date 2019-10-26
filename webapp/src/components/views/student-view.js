@@ -87,7 +87,8 @@ class RLAwsStudentView extends connect(store)(PageViewElement) {
       <h3 class="success">Authentication successful!</h3>
       <p>Here's your AWS credentials:</p>
       <p>
-        <b>AWS Management Console</b>: TODO<br />
+        <b>AWS Management Console</b>:
+        <a href="${this._creds.url}" target="_blank">click to open</a><br />
         <b>Username</b>: <span class="credentials">${this._creds.username}</span><br />
         <b>Password</b>: <span class="credentials password">${this._creds.password}</span>
       </p>
