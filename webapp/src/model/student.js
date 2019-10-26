@@ -7,15 +7,25 @@ const studentKey = 'rlAwsStudentCredentials';
 
 export class RLAwsStudent extends RLAwsAPI {
 
-  constructor() {
+  constructor(options) {
+    super(options);
   }
 
   getStoredCredentials() {
-    let credentials = localStorage.getItem(studentKey);
+    let credentials = null;
+    try {
+      credentials = localStorage.getItem(studentKey);
+      if (credentials)
+        credentials = JSON.parse(credentials);
+    } catch(e) {
+      if (console.error)
+        console.error("Invalid localStorage object", e);
+    }
     if (credentials) {
       // check the credentials online
-      this._checkCredentials()
-        .then((res) => true, (err) => {
+      return this._checkCredentials(credentials)
+        .then((resp) => credentials)
+        .catch((err) => {
           this.resetCredentials();
           return null;
         });
@@ -24,24 +34,26 @@ export class RLAwsStudent extends RLAwsAPI {
   }
 
   _checkCredentials(creds) {
-    this.get("/student/check")
+    return this.post("/student/check")
       .send(creds);
   }
 
-  fetchNewCredentials() {
+  fetchNewCredentials(labPassword) {
     return this.post("/student/newCredentials")
-      .send({"please": true}) // well, nothing is really required
-      .then((creds) => {
+      .send({"labPassword": labPassword})
+      .then((resp) => {
+        let creds = resp.body;
         this.storeCredentials(creds);
         return creds;
-      }, (err) => {
+      })
+      .catch((err) => {
         this.resetCredentials();
-        return err;
+        throw this._errorMessage(err);
       });
   }
 
   storeCredentials(creds) {
-    localStorage.setItem(studentKey, creds);
+    localStorage.setItem(studentKey, JSON.stringify(creds));
   }
 
   resetCredentials(creds) {

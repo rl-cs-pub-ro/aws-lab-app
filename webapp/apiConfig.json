@@ -1,0 +1,5 @@
+{
+  "_comment": "Use external API server for development",
+  "apiURL": "http://localhost:8080"
+}
+
