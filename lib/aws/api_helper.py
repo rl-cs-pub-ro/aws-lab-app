@@ -6,22 +6,28 @@ import boto3
 class AwsAPIHelper():
     """ An API helper class (initialized once per thread) """
     
-    def __init__(self):
-        self._client = boto3.client('ec2')
+    def __init__(self, aws_config):
+        self._config = aws_config
+        self._session = self._new_session()
 
     @property
-    def client(self):
-        """ Returns the AWS EC2 client. """
-        return self._client
+    def session(self):
+        return self._session
 
-    def debug(self):
-        # Retrieves all regions/endpoints that work with EC2
-        response = self._client.describe_regions()
-        print('Regions:', response['Regions'])
+    def client(self, name, **kwargs):
+        """ Returns a specific AWS low level client. """
+        return self._session.client(name, **kwargs)
 
-        # Retrieves availability zones only for region of the ec2 object
-        response = self._client.describe_availability_zones()
-        print('Availability Zones:', response['AvailabilityZones'])
+    def resource(self, name, **kwargs):
+        """ Returns a specific AWS resource. """
+        return self._session.resource(name, **kwargs)
 
-        response = self._client.describe_regions(RegionNames=["eu-west-1"])
-        print(response)
+    def _new_session(self, **extra_options):
+        options = {
+            "region_name": self._config["region"],
+            "aws_access_key_id": self._config["key"],
+            "aws_secret_access_key": self._config["key_secret"]
+        }
+        options.update(extra_options)
+        return boto3.session.Session(**options)
+
