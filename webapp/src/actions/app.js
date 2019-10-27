@@ -10,8 +10,9 @@ const PAGES = {
     title: "Admin", requiresLogin: true,
     subpages: {
       "index": "Dashboard",
-      "resources": "AWS Resources",
-    }
+      "users": "AWS Users",
+    },
+    defaultSubpage: "index",
   },
   "error404": {
     title: "Error 404",
@@ -33,8 +34,13 @@ const loadPage = (page, pageComponents) => (dispatch) => {
     pageDescriptor = PAGES[page];
   }
   let pageObj = { name: page, title: pageDescriptor.title };
+  let subpage = null;
   if (pageComponents && pageComponents.length) {
-    let subpage = pageComponents[0];
+    subpage = pageComponents[0];
+  } else if (pageDescriptor.defaultSubpage) {
+    subpage = pageDescriptor.defaultSubpage;
+  }
+  if (subpage) {
     if (pageDescriptor.subpages && pageDescriptor.subpages[subpage]) {
       pageObj.subpage = { ...pageDescriptor.subpages[subpage], name: subpage };
     } else {

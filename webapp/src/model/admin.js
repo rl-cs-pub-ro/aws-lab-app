@@ -51,6 +51,15 @@ export class RLAwsAdmin extends RLAwsAPI {
       });
   }
 
+  getAwsUsers() {
+    return this.get("/admin/getAwsUsers")
+      .then((resp) => {
+        return resp.body;
+      }, (err) => {
+        throw this._errorMessage(err);
+      });
+  }
+
   logout() {
     this.resetCredentials();
     return Promise.resolve(true);

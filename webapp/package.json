@@ -23,7 +23,8 @@
     "redux": "^4.0.4",
     "redux-thunk": "^2.3.0",
     "reselect": "^4.0.0",
-    "superagent": "^5.1.0"
+    "superagent": "^5.1.0",
+    "timeago.js": "^4.0.1"
   },
   "devDependencies": {
     "@polymer/test-fixture": "^4.0.2",

@@ -15,11 +15,11 @@ class ApplicationStore():
         "path": "./data",
     }
 
-    def __init__(self, config):
+    def __init__(self, config, thread_pool):
         self._config = dict(self.DEFAULT_CONFIG)
         if config:
             self._config.update(config)
-        self._users = StudentAccountsStore(self._config)
+        self._users = StudentAccountsStore(self._config, thread_pool)
         self._lab = LabVarsStore(self._config)
         self._admin = AdminAuthStore(self._config)
 

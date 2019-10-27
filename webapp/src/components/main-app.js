@@ -154,8 +154,8 @@ export class RLAwsApp extends connect(store)(LitElement) {
             </div>
           ` : html`
             <div class="toolbar toolbar-left">
-              <a ?selected="${this._page.subpage === 'dashboard'}" href="/admin/">Dashboard</a>
-              <a ?selected="${this._page.subpage === 'resources'}" href="/admin/resources">Resources</a>
+              <a ?selected="${this._page.subpage.name === 'index'}" href="/admin/">Dashboard</a>
+              <a ?selected="${this._page.subpage.name === 'users'}" href="/admin/users">Users</a>
             </div>
             <div class="toolbar toolbar-right">
               <a class="admin" href="#" @click="${this._adminLogout}">Logout</a>

@@ -7,7 +7,7 @@ import cherrypy_cors
 from ._utils import send_json_error
 from .student import StudentController
 from .admin import AdminController
-from lib.aws.tasks import RetrieveStudentUsers
+from ..model.aws import AWSUsersManager
 
 
 class AwsWebApp():
@@ -70,11 +70,5 @@ class AwsWebApp():
         }
 
     def _init_users(self):
-        user_pattern = self._config["data_store"]["student"]["user_pattern"]
-        task = RetrieveStudentUsers(pattern=user_pattern)
-        future = self.thread_pool.queue_task(task)
-        # wait for completion
-        users = future.result(timeout=10)
-        self._store.users.load_existing_users(users)
-        
+        self._store.users.refresh_users()
 

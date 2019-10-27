@@ -4,11 +4,12 @@ import { PageViewElement } from '../page-view-element.js';
 
 // This element is connected to the Redux store.
 import { store } from '../../store.js';
-import { loginAdmin, loadAdminCredentials } from '../../actions/admin.js';
+import { loginAdmin, loadAdminCredentials, loadStudentUsers } from '../../actions/admin.js';
 
 import { SharedStyles } from '../styles/shared-styles.js';
 import { LoginForm } from '../ui/login-form.js';
 import { RLAwsAdminDashboard } from './admin-dashboard.js';
+import { RLAwsAdminUsers } from './admin-users.js';
 
 
 export class RLAwsAdminView extends connect(store)(PageViewElement) {
@@ -56,7 +57,9 @@ export class RLAwsAdminView extends connect(store)(PageViewElement) {
     }
     return html`
       <rl-admin-dashboard class="page" ?active="${this._subpage ===
-        'dashboard'}"> </rl-admin-dashboard>
+        'index'}"> </rl-admin-dashboard>
+      <rl-admin-users class="page" ?active="${this._subpage ===
+        'users'}"> </rl-admin-users>
     `;
   }
 
@@ -74,7 +77,7 @@ export class RLAwsAdminView extends connect(store)(PageViewElement) {
   // This is called every time something is updated in the store.
   stateChanged(state) {
     let subpageObj = state.app.page.subpage;
-    this._subpage = subpageObj ? subpageObj.name : "dashboard";
+    this._subpage = subpageObj ? subpageObj.name : "";
     this._authenticated = state.admin.authStatus;
     this._authFailed = state.admin.authError;
     this._authLoading = !state.admin.authLoaded;

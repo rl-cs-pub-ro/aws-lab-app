@@ -1,12 +1,11 @@
 # RL AWS web service configuration file example
 aws:
   region: eu-west-1
+  url: "https://{account_id}.signin.aws.amazon.com/console?region={region}"
   # note: secrets loaded from separate secrets.yaml!
 
 data_store:
   path: "./data"
-  student:
-    user_pattern: "student[0-9]+"
 
 server:
   workers: 3

@@ -9,28 +9,33 @@ class StudentAccountCollection():
 
     def __init__(self, initialUsers):
         self._users = {}
-        self.load(initialUsers)
+        self.load_persisted(initialUsers)
 
-    def load(self, usersList, no_replace=False):
-        """ Loads the users (from file / AWS API). """
-        if not usersList:
+    def load_persisted(self, users):
+        """ Loads users' persisted properties (allocation token and password). """
+        if not users:
             return
-        for user in usersList:
-            if not isinstance(user, StudentAccount):
-                # for the initial users list (given as strings)
-                if isinstance(user, str):
-                    user = {"username": user}
-                user = StudentAccount(**user)
-            username = user.username
-            if username in self._users and no_replace:
-                continue
+        for user in users:
+            user_obj = self.get_user(user["username"], create=True)
+            user_obj.password = user.get("password", None)
+            user_obj.alloc_token = user.get("allocatedToken", None)
 
-            self._users[username] = user
+    def load_aws(self, aws_users):
+        """ Loads the users' stats from the AWS API. """
+        if not aws_users:
+            return
+        for user in aws_users:
+            user_obj = self.get_user(user["username"], create=True)
+            user_obj.update_stats(last_used=user.get("last_used", None))
 
-    def get_user(self, username):
-        """ Returns a specific user's object. """
+    def get_user(self, username, create=False):
+        """ Returns a specific user's object (creates it if it doesn't exist). """
         if username not in self._users:
-            raise StudentAccountException("User '%s' not found" % username)
+            if create:
+                user_obj = StudentAccount(username=username)
+                self._users[username] = user_obj
+            else:
+                raise StudentAccountException("User '%s' not found" % username)
         return self._users[username]
 
     def allocate_user(self):
@@ -55,30 +60,44 @@ class StudentAccountCollection():
             raise StudentAccountException("User '%s' not found" % username)
         self._users[username].reset()
 
-    def export(self):
+    def export(self, persistent=False):
         """ Exports all user accounts as list of standard objects (for
-        persisting). """
-        return [user.export() for user in self._users.values()]
+        persistence or web presentation). """
+        return [user.export(persistent=persistent)
+                for user in self._users.values()]
 
 
 class StudentAccount():
     """ Encapsulates student account state. """
-    __slots__ = ("username", "password", "alloc_token")
+    __slots__ = ("username", "password", "alloc_token", "aws_stats")
 
     def __init__(self, **user):
         self.username = user.get("username")
         self.password = user.get("password", None)
         self.alloc_token = user.get("allocatedToken", None)
+        self.aws_stats = user.get("awsStats", {})
 
     def reset(self):
         """ Resets the user to unallocated state. """
         self.password = None
         self.alloc_token = None
+        
+    def update_stats(self, **stats):
+        """ Updates the AWS stats for the user. """
+        self.aws_stats.update(stats)
 
-    def export(self):
+    @property
+    def allocated(self):
+        return bool(self.alloc_token)
+
+    def export(self, persistent=False):
         """ Export the user as standard object. """
-        return {"username": self.username, "password": self.password,
-                "allocatedToken": self.alloc_token}
+        obj = {"username": self.username, "password": self.password,
+               "allocatedToken": self.alloc_token}
+        if not persistent:  # also export the non-persistent stats
+            obj["awsStats"] = self.aws_stats
+
+        return obj
 
 
 class StudentAccountException(Exception):

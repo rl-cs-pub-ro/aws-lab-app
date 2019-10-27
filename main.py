@@ -10,8 +10,8 @@ from lib.store import ApplicationStore
 if __name__ == '__main__':
     config = load_config()
     configure_logging()
-    store = ApplicationStore(config.get("data_store", {}))
     thread_pool = ThreadPool(config["server"]["workers"], config["aws"])
+    store = ApplicationStore(config.get("data_store", {}), thread_pool)
 
     app = AwsWebApp(config=config, store=store, thread_pool=thread_pool)
     app.start()

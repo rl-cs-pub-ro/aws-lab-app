@@ -7,6 +7,7 @@ import cherrypy_cors
 
 from ..aws.tasks import ChangeUserPassword
 from ..model.student_users import StudentAccountException
+from ..model.aws import AWSUsersManager
 from ..aws.utils import get_aws_url
 
 from ._utils import send_json_error
@@ -40,21 +41,17 @@ class AdminController():
         if not self._store.admin.check_auth_token(auth_token):
             raise cherrypy.HTTPError(401, "Not Authenticated")
 
-    @cherrypy.expose()
-    def check(self):
-        """ Checks the admin's token and returns whether it's still valid. """
+    def _check_preflight(self):
+        """ Checks for CORS preflight and returns from the request. """
         if cherrypy.request.method == 'OPTIONS':
             cherrypy_cors.preflight(allowed_methods=['GET', 'POST'])
-            return
-        # actually, the _check_authorization tool will handle it
-        self._check_authorization()
-        return {"success": True}
+            return True
+        return False
 
     @cherrypy.expose()
     def login(self):
         """ Authenticates the administrator """
-        if cherrypy.request.method == 'OPTIONS':
-            cherrypy_cors.preflight(allowed_methods=['GET', 'POST'])
+        if self._check_preflight():
             return
 
         if cherrypy.request.method != "POST":
@@ -73,4 +70,22 @@ class AdminController():
             "auth_token": auth_token
         }
 
+    @cherrypy.expose()
+    def check(self):
+        """ Checks the admin's token and returns whether it's still valid. """
+        if self._check_preflight():
+            return
+        # actually, the _check_authorization tool will handle it
+        self._check_authorization()
+        return {"success": True}
+
+    @cherrypy.expose(alias="getAwsUsers")
+    def get_aws_users(self):
+        """ Returns all AWS users. """
+        if self._check_preflight():
+            return
+        self._check_authorization()
+
+        users = self._store.users.refresh_users()
+        return users
 

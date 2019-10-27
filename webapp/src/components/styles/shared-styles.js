@@ -26,4 +26,16 @@ export const SharedStyles = css`
   .success {
     color: #5A5;
   }
+  .errorMessage {
+    visibility: hidden; opacity: 0;
+    padding: 0;
+    height: 0; overflow: hidden;
+    transition: visibility 0s, opacity 0.5s linear;
+  }
+  .errorMessage[visible] {
+    visibility: visible; opacity: 1;
+    padding: 10px 0;
+    height: auto; overflow: initial;
+    display: block;
+  }
 `;

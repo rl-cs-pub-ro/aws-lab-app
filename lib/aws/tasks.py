@@ -2,6 +2,7 @@
 
 import string
 import random
+import time
 import re
 from concurrent.futures import Future
 
@@ -32,9 +33,10 @@ class RetrieveStudentUsers(AwsTask):
             username = user["UserName"]
             if not re.match(self.pattern, username):
                 continue
+            last_used = user.get("PasswordLastUsed", None)
             filtered_users.append({
                 "username": username,
-                "last_used": user.get("PasswordLastUsed", None)
+                "last_used": time.mktime(last_used.timetuple()) if last_used else None
             })
         return filtered_users
         
