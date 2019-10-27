@@ -35,6 +35,11 @@ class StudentController():
         }
 
     @cherrypy.expose()
+    def default(self, *args):
+        return self._app.default()
+    default._cp_config = {"tools.json_out.on": False}
+
+    @cherrypy.expose()
     def check(self):
         """ Checks the user's token and returns its password + extra data. """
         if cherrypy.request.method == 'OPTIONS':

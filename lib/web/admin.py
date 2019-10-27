@@ -49,6 +49,11 @@ class AdminController():
         return False
 
     @cherrypy.expose()
+    def default(self, *args):
+        return self._app.default()
+    default._cp_config = {"tools.json_out.on": False}
+
+    @cherrypy.expose()
     def login(self):
         """ Authenticates the administrator """
         if self._check_preflight():

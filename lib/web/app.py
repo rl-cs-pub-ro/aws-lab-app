@@ -22,6 +22,9 @@ class AwsWebApp():
         cherrypy.tree.mount(self, "/", self._cherry_config())
         self._student = StudentController(app=self)
         self._admin = AdminController(app=self)
+        self._static_root = os.path.join(
+            os.path.abspath(os.getcwd()),
+            self._config["server"]["static_path"])
 
         cherrypy.engine.subscribe('stop', self._on_stop)
 
@@ -61,6 +64,11 @@ class AwsWebApp():
                 'error_page.default': send_json_error,
             },
         }
+
+    @cherrypy.expose()
+    def default(self, *args):
+        """ Serve the static index. """
+        return cherrypy.lib.static.serve_file(os.path.join(self._static_root, "index.html"))
 
     @cherrypy.expose(alias="apiConfig.json")
     @cherrypy.tools.json_out()
