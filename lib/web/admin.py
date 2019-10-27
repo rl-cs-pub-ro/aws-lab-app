@@ -89,3 +89,19 @@ class AdminController():
         users = self._store.users.refresh_users()
         return users
 
+    @cherrypy.expose(alias="changeLabPassword")
+    def change_lab_password(self):
+        """ Changes the lab password. """
+        if self._check_preflight():
+            return
+        self._check_authorization()
+
+        if cherrypy.request.method != "POST":
+            raise cherrypy.HTTPError(400, "Invalid request (%s)" % cherrypy.request.method)
+        args = cherrypy.request.json
+
+        if not isinstance(args, Mapping) or not args.get("labPassword", ""):
+            raise cherrypy.HTTPError(400, "Invalid password!")
+        self._store.lab.set_password(args["labPassword"])
+
+        return {"success": True}

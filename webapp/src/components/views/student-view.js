@@ -20,7 +20,6 @@ export class RLAwsStudentView extends connect(store)(PageViewElement) {
       _loadingApp: { type: Boolean },
       _loadingAction: { type: Boolean },
       _creds: { type: Object },
-      _labPassword: { type: String },
     };
   }
 
@@ -57,8 +56,7 @@ export class RLAwsStudentView extends connect(store)(PageViewElement) {
         with the RL AWS Lab.</p>
         <p>Please enter the lab's password to continue:</p>
         <form class="bordered" @submit="${this._loginSubmit}">
-          <input type="text" @input="${this._labPasswordChanged}"
-            @keyup="${this._loginSubmit}" />
+          <input name="labPassword" type="text" />
           <button type="submit">Proceed</button>
           <loading-spinner ?visible="${this._loadingAction}"></loading-spinner>
           <div class="error errorMessage" ?visible="${this._authFailed}">
@@ -85,20 +83,13 @@ export class RLAwsStudentView extends connect(store)(PageViewElement) {
     store.dispatch(loadStudentCredentials());
   }
 
-  _labPasswordChanged(event) {
-    this._labPassword = event.target.value;
-  }
-
   _loginSubmit(event) {
-    if (event.type == "keyup") {
-      if (event.keyCode !== 13)
-        return;
-    }
     event.preventDefault();
     this._authFailed = '';
     this._loadingAction = true;
+    let labPassword = event.target.elements.labPassword.value;
     setTimeout(() => {
-      store.dispatch(loginStudent(this._labPassword));
+      store.dispatch(loginStudent(labPassword));
     }, 50);
   }
 

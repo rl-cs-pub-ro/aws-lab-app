@@ -4,7 +4,7 @@ import { PageViewElement } from '../page-view-element.js';
 
 // This element is connected to the Redux store.
 import { store } from '../../store.js';
-import { loadStudentUsers } from '../../actions/admin.js';
+import { loadStudentUsers, changeLabPassword } from '../../actions/admin.js';
 
 import { SharedStyles } from '../styles/shared-styles.js';
 
@@ -14,8 +14,7 @@ export class RLAwsAdminDashboard extends connect(store)(PageViewElement) {
     return {
       active: { type: Boolean },
       _stats: { type: Object },
-      _actionError: { type: Object },
-      _showActionError: { type: Object },
+      _labPasswordError: { type: String },
     };
   }
 
@@ -87,8 +86,11 @@ export class RLAwsAdminDashboard extends connect(store)(PageViewElement) {
       <p><b>Actions:</b></p>
       <div>
         <form class="bordered" action="" @submit="${this._submitLabPassword}">
-          Lab password: <input class="labPassword" type="text" name="lab_password" />
-          <button>Change</button>
+          Lab password: <input class="labPassword" type="text" name="labPassword" />
+          <button type="submit">Change</button>
+          <div class="error errorMessage" ?visible="${this._labPasswordError}">
+            ${this._labPasswordError}
+          </div>
         </form>
       </div>
     </section>`;
@@ -96,11 +98,31 @@ export class RLAwsAdminDashboard extends connect(store)(PageViewElement) {
 
   _submitLabPassword(event) {
     event.preventDefault();
+    let labPassword = event.target.elements.labPassword.value;
+    setTimeout(() => {
+      store.dispatch(changeLabPassword(labPassword));
+    }, 50);
+  }
+
+  updated(changedProps) {
+    if (changedProps.has('active')) {
+      if (this.active) {
+        this._labPasswordError = '';
+        // store.dispatch(startUsersRefresh());
+      } else {
+        // store.dispatch(stopUsersRefresh());
+      }
+    }
   }
 
   // This is called every time something is updated in the store.
   stateChanged(state) {
-    // this._actionStatus = state.admin.actionResults.index;
+    let changeLabPasswordStatus = state.admin.actionStatus.changeLabPassword;
+    if (changeLabPasswordStatus && changeLabPasswordStatus.error) {
+      this._labPasswordError = changeLabPasswordStatus.error;
+    } else {
+      this._labPasswordError = '';
+    }
     // this._users = state.admin.users;
   }
 }

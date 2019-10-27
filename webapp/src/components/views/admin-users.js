@@ -14,6 +14,7 @@ import { SharedStyles } from '../styles/shared-styles.js';
 export class RLAwsAdminUsers extends connect(store)(PageViewElement) {
   static get properties() {
     return {
+      active: { type: Boolean },
       _users: { type: Object },
       _usersLoadError: { type: String },
     };
@@ -70,7 +71,7 @@ export class RLAwsAdminUsers extends connect(store)(PageViewElement) {
     return html`<section>
       <h3>AWS Users</h3>
       <div class="error errorMessage" ?visible="${this._usersLoadError}">
-        ${'Users refresh failed: ' + this._usersLoadError}
+        ${this._usersLoadError}
       </div>
       <div class="users-table">
         ${this._sortUsers().map((key) => {
@@ -132,6 +133,7 @@ export class RLAwsAdminUsers extends connect(store)(PageViewElement) {
   updated(changedProps) {
     if (changedProps.has('active')) {
       if (this.active) {
+        this._usersLoadError = '';
         store.dispatch(startUsersRefresh());
       } else {
         store.dispatch(stopUsersRefresh());

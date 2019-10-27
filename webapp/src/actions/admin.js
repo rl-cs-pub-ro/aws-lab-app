@@ -65,6 +65,10 @@ export const loginAdmin = (username, password) => (dispatch) => {
 };
 
 export const logoutAdmin = () => (dispatch) => {
+  if (!adminModel) {
+    dispatch(showAppError(modelError));
+    return;
+  }
   adminModel.logout()
     .then((result) => {
       dispatch(_updateLogin(false, ''));
@@ -72,6 +76,10 @@ export const logoutAdmin = () => (dispatch) => {
 };
 
 export const loadStudentUsers = () => (dispatch) => {
+  if (!adminModel) {
+    dispatch(showAppError(modelError));
+    return;
+  }
   adminModel.getAwsUsers()
     .then((users) => {
       // store the users as map
@@ -89,6 +97,10 @@ export const loadStudentUsers = () => (dispatch) => {
 let usersRefreshInterval = null;
 
 export const startUsersRefresh = () => (dispatch) => {
+  if (!adminModel) {
+    dispatch(showAppError(modelError));
+    return;
+  }
   // do an extra refresh, then setup the interval
   dispatch(loadStudentUsers());
   if (usersRefreshInterval) return;
@@ -100,6 +112,19 @@ export const startUsersRefresh = () => (dispatch) => {
 export const stopUsersRefresh = () => (dispatch) => {
   if (!usersRefreshInterval) return;
   clearInterval(usersRefreshInterval);
+};
+
+export const changeLabPassword = (labPassword) => (dispatch) => {
+  if (!adminModel) {
+    dispatch(showAppError(modelError));
+    return;
+  }
+  adminModel.changeLabPassword(labPassword)
+    .then(() => {
+      dispatch(_actionResults('changeLabPassword', {success: true}));
+    }, (err) => {
+      dispatch(_actionResults('changeLabPassword', {error: err}));
+    });
 };
 
 

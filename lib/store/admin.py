@@ -38,7 +38,6 @@ class AdminAuthStore(FileStore):
     def authenticate(self, user, password):
         """ Checks the username and password and authenticates the admin. """
         admin_cfg = self._config.get("admin", {})
-        print("CFG", admin_cfg)
         if not admin_cfg.get("username", None) or not admin_cfg.get("password"):
             return None  # deny login if no password is set
         if admin_cfg["username"] != user or admin_cfg["password"] != password:
