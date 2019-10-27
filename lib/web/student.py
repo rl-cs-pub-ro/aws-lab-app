@@ -5,7 +5,6 @@ import logging
 import cherrypy
 import cherrypy_cors
 
-from ..aws.tasks import ChangeUserPassword
 from ..model.student_users import StudentAccountException
 from ..aws.utils import get_aws_url
 
@@ -72,39 +71,7 @@ class StudentController():
 
         self._log.info("Allocated user: %s", user_obj.username)
 
-        # set a new password using the AWS IAM API
-        task = ChangeUserPassword(
-            username=user_obj.username, new_password=user_obj.password,
-            retry=3)
-        # queue a task to set the user's password, but don't wait for it
-        # we need to return the token ASAP
-        self._app.thread_pool.queue_task(task)
-
         return self._get_extra_creds(user_obj)
-
-    @cherrypy.expose(alias="resetPassword")
-    def reset_password(self):
-        """ Resets the password of the user. """
-        if cherrypy.request.method == 'OPTIONS':
-            cherrypy_cors.preflight(allowed_methods=['GET', 'POST'])
-            return
-        if cherrypy.request.method != "POST":
-            raise cherrypy.HTTPError(400, "Invalid request (%s)" % cherrypy.request.method)
-        args = cherrypy.request.json
-        user_obj = self._check_user(args)
-        self._store.users.change_password(user_obj.username)
-
-        self._log.info("Password reset for user %s", user_obj.username)
-        task = ChangeUserPassword(username=args["username"], retry=3)
-        try:
-            future = self._app.thread_pool.queue_task(task)
-            # wait for completion
-            future.result(timeout=TASK_TIMEOUT)
-            # return the token
-            return self._get_extra_creds(user_obj)
-
-        except Exception as ex:
-            raise cherrypy.HTTPError(500, "Error: %s" % str(ex))
 
     def _check_user(self, args):
         if not isinstance(args, Mapping) or "username" not in args:

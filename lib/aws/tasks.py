@@ -39,7 +39,6 @@ class RetrieveStudentUsers(AwsTask):
                 "last_used": time.mktime(last_used.timetuple()) if last_used else None
             })
         return filtered_users
-        
 
 
 class ChangeUserPassword(AwsTask):

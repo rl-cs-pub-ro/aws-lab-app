@@ -4,7 +4,7 @@ import time
 from threading import Lock
 from concurrent.futures import Future
 
-from ..aws.tasks import RetrieveStudentUsers
+from ..aws.tasks import RetrieveStudentUsers, ChangeUserPassword
 
 
 TASK_TIMEOUT = 10  # seconds
@@ -31,6 +31,16 @@ class AWSUsersManager():
         task = RetrieveStudentUsers(pattern=self._config["pattern"])
         task_future = self._thread_pool.queue_task(task)
         return task_future.result(timeout=TASK_TIMEOUT)
+
+    def change_user_password(self, username, password):
+        """ Changes the AWS user's password (note: non blocking). """
+        # set a new password using the AWS IAM API
+        task = ChangeUserPassword(
+            username=username, new_password=password,
+            retry=3)
+        # queue a task to set the user's password, but don't wait for it
+        # we need to return the token ASAP
+        return self._thread_pool.queue_task(task)
 
 
 class AWSResourceCollection():

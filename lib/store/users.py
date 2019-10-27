@@ -69,10 +69,13 @@ class StudentAccountsStore(FileStore):
 
     def allocate_user(self):
         """ Tries to allocate an unused user account. """
+        user_obj = None
         with self._lock:
             user_obj = self._collection.allocate_user()
             self._save()
-            return user_obj
+        self._aws_mgr.change_user_password(
+            user_obj.username, user_obj.password)
+        return user_obj
 
     def reset_user(self, username):
         """ Resets an user account. """
