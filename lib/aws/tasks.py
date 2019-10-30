@@ -37,7 +37,7 @@ class RetrieveStudentUsers(AwsTask):
             last_used = user.get("PasswordLastUsed", None)
             filtered_users.append({
                 "username": username,
-                "last_used": time.mktime(last_used.timetuple()) if last_used else None
+                "last_used": last_used.timestamp() if last_used else None
             })
         return filtered_users
 
@@ -72,55 +72,52 @@ class ChangeUserPassword(AwsTask):
 
 class RetrieveEC2Resources(AwsTask):
     """ Retrieves the collection of all relevant resources. """
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
     def execute(self, aws):
         ec2 = aws.client("ec2")
+        FETCH_TYPES = {
+            "Instances": ec2.describe_instances,
+            "KeyPairs": ec2.describe_key_pairs,
+            "Vpcs": ec2.describe_vpcs,
+            "Addresses": ec2.describe_addresses,
+            "InternetGateways": ec2.describe_internet_gateways,
+            "Subnets": ec2.describe_subnets,
+            "RouteTables": ec2.describe_route_tables,
+            "SecurityGroups": ec2.describe_security_groups,
+        }
         resources = {}
-        resources.update(normalize_resources("Reservations", ec2.describe_instances()))
-        resources.update(normalize_resources("KeyPairs", ec2.describe_key_pairs()))
-        resources.update(normalize_resources("Vpcs", ec2.describe_vpcs()))
-        resources.update(normalize_resources("Addresses", ec2.describe_addresses()))
-        resources.update(normalize_resources("InternetGateways", ec2.describe_internet_gateways()))
-        resources.update(normalize_resources("Subnets", ec2.describe_subnets()))
-        resources.update(normalize_resources("RouteTables", ec2.describe_route_tables()))
-        resources.update(normalize_resources("SecurityGroups", ec2.describe_security_groups()))
+        for res_type, func in FETCH_TYPES.items():
+            resources[res_type] = func()
         return resources
 
 
-class CleanupUserInstancesTask(AwsTask):
-    """ Stops & deletes user EC2 instances """
+class CleanupUserResourcesTask(AwsTask):
+    """ Deletes AWS user resources. """
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.username = kwargs.pop("username")
+        self.resource_map = kwargs.pop("resourceMap")
 
     def execute(self, aws):
-        pass
-        #instances = filter_resources(normalize_resources(
+        ec2 = aws.client("ec2")
+        DELETE_FUNCS = {
+            "Instances": ec2.terminate_instance,
+            "KeyPairs": ec2.delete_key_pair,
+            "Vpcs": ec2.delete_vpc,
+            "Addresses": ec2.release_address,
+            "InternetGateways": ec2.delete_internet_gateway,
+            "Subnets": ec2.delete_subnet,
+            "RouteTables": ec2.delete_route_table,
+            "SecurityGroups": ec2.delete_security_group,
+        }
+        for res_type, resource_ids in self.resource_map:
+            FUNC = DELETE_FUNCS.get(res_type)
+            FUNC(resource_ids)
+        
+        # instances = filter_resources(normalize_resources(
         #    "Reservations", ec2.describe_instances()))
         # for instance in instances["Instances"]:
 
-
-class DeleteVPCTask(AwsTask):
-    """ Deletes a VPC and all associated resources """
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.username = kwargs.pop("username")
-
-    def execute(self, aws):
-        # ec2: delete-vpc, delete-internet-gateway, delete-subnet, delete-network-interface
-        # subnets <- network interfaces
-        # delete VPC șterge tot ;) 
-        pass
-
-
-class CleanUpAWSKeys(AwsTask):
-    """ Cleans up AWS key pairs """
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.username = kwargs.pop("username")
-
-    def execute(self):
-        pass
 

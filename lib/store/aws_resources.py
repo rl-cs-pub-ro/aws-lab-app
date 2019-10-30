@@ -42,12 +42,10 @@ class AwsResourcesStore():
                 need_refresh = True
         # execute the task outside the lock
         if need_refresh:
-            aws_res = self._fetch_resources()
-            log.info("Refreshed AWS resources (%s)", len(aws_res))
+            collect = AWSResourceCollection(self._fetch_resources())
+            log.info("Refreshed AWS resources (%s)", collect.get_size())
             with self._lock:
-                self._collection = aws_res
-
-        return self.export()
+                self._collection = collect
 
     def _fetch_resources(self):
         """ Executes the resources polling task and returns the newly discovered resources. """
@@ -55,7 +53,11 @@ class AwsResourcesStore():
         task_future = self._thread_pool.queue_task(task)
         return task_future.result(timeout=self._config["timeout"])
 
-    def export(self):
-        """ Returns the student users as standard object. """
+    def get_stats(self, users):
         with self._lock:
-            return self._collection
+            return self._collection.get_stats(users)
+
+    def export(self):
+        """ Returns the collection resources as standard object. """
+        with self._lock:
+            return self._collection.export()

@@ -50,6 +50,6 @@ class ApplicationStore():
 
     @property
     def resources(self):
-        """ Returns the admin store. """
-        return self._admin
+        """ Returns the resources store. """
+        return self._resources
 
