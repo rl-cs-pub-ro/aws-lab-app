@@ -6,7 +6,9 @@ import '@polymer/iron-icons/iron-icons.js';
 
 // This element is connected to the Redux store.
 import { store } from '../../store.js';
-import { loadStudentUsers, changeLabPassword } from '../../actions/admin.js';
+import {
+  loadStudentUsers, loadLabSettings, changeLabPassword
+} from '../../actions/admin.js';
 
 import { SharedStyles } from '../styles/shared-styles.js';
 

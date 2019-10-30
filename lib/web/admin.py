@@ -85,6 +85,15 @@ class AdminController():
         self._check_authorization()
         return {"success": True}
 
+    @cherrypy.expose(alias="getLabSettings")
+    def get_lab_settings(self):
+        """ Returns the current lab variables (e.g., password). """
+        if self._check_preflight():
+            return
+        self._check_authorization()
+        lab = self._store.lab.get_all_vars()
+        return lab
+
     @cherrypy.expose(alias="getAwsUsers")
     def get_aws_users(self):
         """ Returns all AWS users. """

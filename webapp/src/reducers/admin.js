@@ -1,5 +1,5 @@
 import {
-  ADMIN_UPDATE_AUTH, ADMIN_UPDATE_USERS, ADMIN_UPDATE_ACTION
+  ADMIN_UPDATE_AUTH, ADMIN_UPDATE_LAB, ADMIN_UPDATE_USERS, ADMIN_UPDATE_ACTION,
 } from '../actions/admin.js';
 
 const INITIAL_STATE = {
@@ -7,6 +7,7 @@ const INITIAL_STATE = {
   authError: '',
   authLoaded: false,
   users: {},
+  lab: {},
   actionStatus: {},
 };
 
@@ -19,6 +20,11 @@ const adminReducer = (state = INITIAL_STATE, action) => {
         authStatus: action.authStatus,
         authError: action.authError,
         authLoaded: true,
+      };
+    case ADMIN_UPDATE_LAB:
+      return {
+        ...state,
+        lab: action.lab,
       };
     case ADMIN_UPDATE_USERS:
       return {

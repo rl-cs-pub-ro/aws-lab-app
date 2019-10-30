@@ -35,7 +35,7 @@ class LabVarsStore(FileStore):
             return self._lab.get("password", None) and lab_password and \
                 lab_password == self._lab["password"]
 
-    def get_all_vars(self, username):
+    def get_all_vars(self):
         """ Returns the lab config (use for admins only!). """
         with self._lock:
             return dict(self._lab)

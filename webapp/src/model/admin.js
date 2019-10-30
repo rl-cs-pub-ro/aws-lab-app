@@ -60,6 +60,16 @@ export class RLAwsAdmin extends RLAwsAPI {
       });
   }
 
+  getLabSettings(labPassword) {
+    return this.get("/admin/getLabSettings")
+      .then((resp) => {
+        return resp.body;
+      }, (err) => {
+        throw this._errorMessage(err);
+      });
+  }
+
+
   changeLabPassword(labPassword) {
     return this.post("/admin/changeLabPassword")
       .send({ labPassword })

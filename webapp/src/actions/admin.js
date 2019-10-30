@@ -4,6 +4,7 @@ import { loadConfig } from "../model/config.js";
 import { showAppError } from "./app.js";
 
 export const ADMIN_UPDATE_AUTH = "ADMIN_UPDATE_AUTH";
+export const ADMIN_UPDATE_LAB = "ADMIN_UPDATE_LAB";
 export const ADMIN_UPDATE_USERS = 'ADMIN_UPDATE_USERS';
 export const ADMIN_UPDATE_RESOURCES = 'ADMIN_UPDATE_RESOURCES';
 export const ADMIN_UPDATE_ACTION = 'ADMIN_UPDATE_ACTION';
@@ -112,6 +113,22 @@ export const startUsersRefresh = () => (dispatch) => {
 export const stopUsersRefresh = () => (dispatch) => {
   if (!usersRefreshInterval) return;
   clearInterval(usersRefreshInterval);
+};
+
+export const loadLabSettings = () => (dispatch) => {
+  if (!adminModel) {
+    dispatch(showAppError(modelError));
+    return;
+  }
+  adminModel.getLabSettings()
+    .then((labSettings) => {
+      dispatch({
+        type: ADMIN_UPDATE_LAB,
+        lab: labSettings
+      });
+    }, (err) => {
+      dispatch(_actionResults('changeLabPassword', {error: err}));
+    });
 };
 
 export const changeLabPassword = (labPassword) => (dispatch) => {
