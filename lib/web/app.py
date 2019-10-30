@@ -7,7 +7,6 @@ import cherrypy_cors
 from ._utils import send_json_error
 from .student import StudentController
 from .admin import AdminController
-from ..model.aws import AWSUsersManager
 
 
 class AwsWebApp():

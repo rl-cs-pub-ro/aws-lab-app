@@ -5,7 +5,7 @@ import os.path
 import logging
 from threading import Lock
 
-from lib.model.aws import AWSUsersManager
+from lib.aws.tasks import RetrieveStudentUsers, ChangeUserPassword
 from lib.model.student_users import StudentAccountCollection
 from ._file import FileStore
 
@@ -17,7 +17,8 @@ class StudentAccountsStore(FileStore):
 
     DEFAULT_CONFIG = {
         "refresh": 10,  # seconds
-        "users": {},
+        "timeout": 10,  # seconds
+        "pattern": r'student[0-9]+'
     }
 
     USERS_FILE = "student_users.yaml"
@@ -28,7 +29,8 @@ class StudentAccountsStore(FileStore):
 
         self._config = dict(self.DEFAULT_CONFIG)
         self._config.update(store_config)
-        self._aws_mgr = AWSUsersManager(self._config.get("users"), thread_pool)
+
+        self._thread_pool = thread_pool
         self._collection = StudentAccountCollection([])
         self._lock = Lock()
         self._last_fetch = None
@@ -49,7 +51,7 @@ class StudentAccountsStore(FileStore):
                 need_refresh = True
         # execute the task outside the lock
         if need_refresh:
-            aws_users = self._aws_mgr.fetch_users()
+            aws_users = self._fetch_aws_users()
             log.info("Refreshed AWS users (%s)", len(aws_users))
             with self._lock:
                 self._collection.load_aws(aws_users)
@@ -73,8 +75,7 @@ class StudentAccountsStore(FileStore):
         with self._lock:
             user_obj = self._collection.allocate_user()
             self._save()
-        self._aws_mgr.change_user_password(
-            user_obj.username, user_obj.password)
+        self._change_aws_password(user_obj.username, user_obj.password)
         return user_obj
 
     def allocate_custom_users(self, users):
@@ -82,7 +83,7 @@ class StudentAccountsStore(FileStore):
         with self._lock:
             for username in users:
                 user_obj = self._collection.allocate_custom(username)
-                self._aws_mgr.change_user_password(
+                self._change_aws_password(
                     user_obj.username, user_obj.password)
             self._save()
         return user_obj
@@ -92,6 +93,22 @@ class StudentAccountsStore(FileStore):
         with self._lock:
             self._collection.reset_user(username)
             self._save()
+
+    def _fetch_aws_users(self):
+        """ Fetches the AWS users. """
+        task = RetrieveStudentUsers(pattern=self._config["pattern"])
+        task_future = self._thread_pool.queue_task(task)
+        return task_future.result(timeout=self._config["timeout"])
+
+    def _change_aws_password(self, username, password):
+        """ Changes the AWS user's password (note: non blocking). """
+        # set a new password using the AWS IAM API
+        task = ChangeUserPassword(
+            username=username, new_password=password,
+            retry=3)
+        # queue a task to set the user's password, but don't wait for it
+        # we need to return the token ASAP
+        return self._thread_pool.queue_task(task)
 
     def _save(self):
         """ Saves the users list to file. Note: use a lock before calling this! """

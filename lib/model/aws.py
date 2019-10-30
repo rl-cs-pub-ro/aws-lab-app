@@ -1,70 +1,63 @@
 """ Model classes for the managed AWS resources (+ thread safe collections). """
 
-import time
-from threading import Lock
-from concurrent.futures import Future
-
-from ..aws.tasks import (
-    RetrieveStudentUsers, ChangeUserPassword, RetrieveEC2Resources
-)
 
 
-TASK_TIMEOUT = 10  # seconds
+class AWSResourceCollection():
+    """ Encapsulates multiple AWS resources. """
 
-
-class AWSUsersManager():
-    """ Functions for managing the AWS users. """
-
-    DEFAULT_CONFIG = {
-        "pattern": "student[0-9]+",
-    }
-
-    def __init__(self, config, thread_pool):
-        # config path: "aws.users"
-        new_config = dict(self.DEFAULT_CONFIG)
-        if config:
-            new_config.update(config)
-
-        self._config = new_config
-        self._thread_pool = thread_pool
-
-    def fetch_users(self):
-        """ Fetches (refreshes, if required) and returns the users collection. """
-        task = RetrieveStudentUsers(pattern=self._config["pattern"])
-        task_future = self._thread_pool.queue_task(task)
-        return task_future.result(timeout=TASK_TIMEOUT)
-
-    def change_user_password(self, username, password):
-        """ Changes the AWS user's password (note: non blocking). """
-        # set a new password using the AWS IAM API
-        task = ChangeUserPassword(
-            username=username, new_password=password,
-            retry=3)
-        # queue a task to set the user's password, but don't wait for it
-        # we need to return the token ASAP
-        return self._thread_pool.queue_task(task)
-
-
-class AWSResourcesManager():
-    """ Manages AWS resources. """
-
-    TYPES = ["instances", "vpc"]
-
-    def __init__(self, config, thread_pool):
-        self._config = config
-        self._thread_pool = thread_pool
-
-    def fetch_resources(self):
-        task = RetrieveEC2Resources()
-        task_future = self._thread_pool.queue_task(task)
-        return task_future.result(timeout=TASK_TIMEOUT)
+    def __init__(self, data=None):
+        self._data = data
 
 
 class AWSResource():
-    """ Encapsulates the data of a generic AWS resource. """
+    """ Encapsulates the data for a generic AWS resource. """
 
     __slots__ = ("type", "id", "name", "owner")
 
     def __init__(self):
         pass
+
+
+RESOURCE_TYPES = {
+    # tuple: (IdKey,)
+    "Instances": ("InstanceId",)
+}
+STUDENT_PREFIX = "student"
+RESERVED_PREFIX = "admin_"
+
+
+def normalize_resources(key, resources):
+    """ Normalizes the resource objects. """
+    # special case: a reservation may contain multiple instances
+    resources = []
+    if key == "Reservations":
+        instances = []
+        for reservation in resources[key]:
+            instances.extend(reservation.get("Instances", []))
+        return {"Instances": instances}
+    return {key: resources[key]}
+
+
+def filter_resources(res_type, resources, prefix=None):
+    """
+    Filters the resources by name tag (user ownership).
+    Automatically ignores 'admin_' (reserved) resources.
+    """
+    filtered_resources = []
+    # res_desc = RESOURCE_TYPES[res_type]
+    # id_key = res_desc[0]
+    for resource in resources:
+        name = None
+        for tag in resource["Tags"]:
+            if tag["Key"] == 'Name':
+                name = tag["Value"].lower()
+                break
+        if not name:  # untagged / orphan resource
+            # if prefix was given, ignore them for now
+            if prefix:
+                continue
+        elif name.startswith(RESERVED_PREFIX) or (not name.startswith(prefix)):
+            continue  # reserved prefix
+        filtered_resources.append(resource)
+    return filtered_resources
 

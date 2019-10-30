@@ -5,9 +5,7 @@ import logging
 import cherrypy
 import cherrypy_cors
 
-from ..aws.tasks import ChangeUserPassword
 from ..model.student_users import StudentAccountException
-from ..model.aws import AWSUsersManager
 from ..aws.utils import get_aws_url
 
 from ._utils import send_json_error, json_handler
@@ -127,12 +125,12 @@ class AdminController():
         users = ["student35", "student36", "student37", "student38", "student39", "student40"]
         self._store.users.allocate_custom_users(users)
 
-    @cherrypy.expose(alias="getAwsResources")
-    def get_aws_resources(self):
-        """ Returns all AWS users. """
+    @cherrypy.expose(alias="getAwsStats")
+    def get_aws_stats(self):
+        """ Returns stats about the AWS resources used. """
         if self._check_preflight():
             return
-        # self._check_authorization()
+        self._check_authorization()
 
         resources = self._store.resources.refresh_resources()
         print(resources)

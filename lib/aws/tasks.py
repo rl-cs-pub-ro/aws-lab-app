@@ -7,7 +7,7 @@ import re
 from concurrent.futures import Future
 
 from botocore.exceptions import ClientError
-from .utils import normalize_resources
+from ..model.aws import normalize_resources
 
 
 class AwsTask():

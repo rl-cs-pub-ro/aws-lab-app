@@ -14,17 +14,24 @@ class ApplicationStore():
 
     DEFAULT_CONFIG = {
         "path": "./data",
+        "users": {},
+        "resources": {},
+        "lab": {},
+        "admin": {},
     }
 
     def __init__(self, config, thread_pool):
         self._config = dict(self.DEFAULT_CONFIG)
         if config:
             self._config.update(config)
+        for key in ["users", "lab", "admin"]:
+            if "path" not in self._config[key]:
+                self._config[key]["path"] = self._config["path"]
 
-        self._users = StudentAccountsStore(self._config, thread_pool)
-        self._resources = AwsResourcesStore(self._config, thread_pool)
-        self._lab = LabVarsStore(self._config)
-        self._admin = AdminAuthStore(self._config)
+        self._users = StudentAccountsStore(self._config["users"], thread_pool)
+        self._resources = AwsResourcesStore(self._config["resources"], thread_pool)
+        self._lab = LabVarsStore(self._config["lab"])
+        self._admin = AdminAuthStore(self._config["admin"])
 
     @property
     def users(self):
