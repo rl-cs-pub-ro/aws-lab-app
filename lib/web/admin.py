@@ -10,7 +10,7 @@ from ..model.student_users import StudentAccountException
 from ..model.aws import AWSUsersManager
 from ..aws.utils import get_aws_url
 
-from ._utils import send_json_error
+from ._utils import send_json_error, json_handler
 
 TASK_TIMEOUT = 30  # seconds
 
@@ -32,6 +32,7 @@ class AdminController():
                 'cors.expose.on': True,
                 'tools.json_in.on': True,
                 'tools.json_out.on': True,
+                'tools.json_out.handler': json_handler,
             }
         }
 
@@ -111,9 +112,20 @@ class AdminController():
 
         return {"success": True}
 
-    @cherrypy.expose(alias="customAllocateUsers")
+    # @cherrypy.expose(alias="customAllocateUsers")
     def custom_allocate_users(self):
         """ For testing purposes. """
         users = ["student35", "student36", "student37", "student38", "student39", "student40"]
         self._store.users.allocate_custom_users(users)
+
+    @cherrypy.expose(alias="getAwsResources")
+    def get_aws_resources(self):
+        """ Returns all AWS users. """
+        if self._check_preflight():
+            return
+        # self._check_authorization()
+
+        resources = self._store.resources.refresh_resources()
+        print(resources)
+        return resources
 

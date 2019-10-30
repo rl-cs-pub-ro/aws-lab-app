@@ -6,6 +6,7 @@ from ._file import FileStore
 from .users import StudentAccountsStore
 from .lab import LabVarsStore
 from .admin import AdminAuthStore
+from .aws_resources import AwsResourcesStore
 
 
 class ApplicationStore():
@@ -19,7 +20,9 @@ class ApplicationStore():
         self._config = dict(self.DEFAULT_CONFIG)
         if config:
             self._config.update(config)
+
         self._users = StudentAccountsStore(self._config, thread_pool)
+        self._resources = AwsResourcesStore(self._config, thread_pool)
         self._lab = LabVarsStore(self._config)
         self._admin = AdminAuthStore(self._config)
 
@@ -35,6 +38,11 @@ class ApplicationStore():
 
     @property
     def admin(self):
+        """ Returns the admin store. """
+        return self._admin
+
+    @property
+    def resources(self):
         """ Returns the admin store. """
         return self._admin
 

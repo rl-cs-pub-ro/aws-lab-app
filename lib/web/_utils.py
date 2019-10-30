@@ -3,6 +3,7 @@
 import json
 
 import cherrypy
+from ..aws.utils import AwsJsonEncoder
 
 
 def send_json_error(status, message, traceback, version):
@@ -27,4 +28,12 @@ def send_json_error(status, message, traceback, version):
         "message": message,
     }).encode('utf-8')
 
+
+AWS_ENCODER = AwsJsonEncoder()
+
+
+def json_handler(*args, **kwargs):
+    value = cherrypy.serving.request._json_inner_handler(*args, **kwargs)
+    for chunk in AWS_ENCODER.iterencode(value):
+        yield chunk.encode('utf-8')
 

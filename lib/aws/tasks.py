@@ -7,6 +7,7 @@ import re
 from concurrent.futures import Future
 
 from botocore.exceptions import ClientError
+from .utils import normalize_resources
 
 
 class AwsTask():
@@ -69,15 +70,36 @@ class ChangeUserPassword(AwsTask):
         return True
 
 
-class DeleteEC2Instances(AwsTask):
-    """ Stops & deletes EC2 instances """
+class RetrieveEC2Resources(AwsTask):
+    """ Retrieves the collection of all relevant resources. """
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def execute(self, aws):
+        ec2 = aws.client("ec2")
+        resources = {}
+        resources.update(normalize_resources("Reservations", ec2.describe_instances()))
+        resources.update(normalize_resources("KeyPairs", ec2.describe_key_pairs()))
+        resources.update(normalize_resources("Vpcs", ec2.describe_vpcs()))
+        resources.update(normalize_resources("Addresses", ec2.describe_addresses()))
+        resources.update(normalize_resources("InternetGateways", ec2.describe_internet_gateways()))
+        resources.update(normalize_resources("Subnets", ec2.describe_subnets()))
+        resources.update(normalize_resources("RouteTables", ec2.describe_route_tables()))
+        resources.update(normalize_resources("SecurityGroups", ec2.describe_security_groups()))
+        return resources
+
+
+class CleanupUserInstancesTask(AwsTask):
+    """ Stops & deletes user EC2 instances """
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.username = kwargs.pop("username")
 
     def execute(self, aws):
-        # stop-instance, apoi terminate, apoi terminated -> it's done
         pass
+        #instances = filter_resources(normalize_resources(
+        #    "Reservations", ec2.describe_instances()))
+        # for instance in instances["Instances"]:
 
 
 class DeleteVPCTask(AwsTask):

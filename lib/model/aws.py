@@ -4,7 +4,9 @@ import time
 from threading import Lock
 from concurrent.futures import Future
 
-from ..aws.tasks import RetrieveStudentUsers, ChangeUserPassword
+from ..aws.tasks import (
+    RetrieveStudentUsers, ChangeUserPassword, RetrieveEC2Resources
+)
 
 
 TASK_TIMEOUT = 10  # seconds
@@ -43,17 +45,19 @@ class AWSUsersManager():
         return self._thread_pool.queue_task(task)
 
 
-class AWSResourceCollection():
-    """ Models all managed AWS resources, grouped by type and searchable by their
-    owning users. """
+class AWSResourcesManager():
+    """ Manages AWS resources. """
 
     TYPES = ["instances", "vpc"]
 
-    def __init__(self):
-        self._resources = {}
+    def __init__(self, config, thread_pool):
+        self._config = config
+        self._thread_pool = thread_pool
 
-    def get_resources(self):
-        pass
+    def fetch_resources(self):
+        task = RetrieveEC2Resources()
+        task_future = self._thread_pool.queue_task(task)
+        return task_future.result(timeout=TASK_TIMEOUT)
 
 
 class AWSResource():
