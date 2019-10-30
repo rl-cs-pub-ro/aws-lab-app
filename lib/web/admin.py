@@ -92,16 +92,6 @@ class AdminController():
         lab = self._store.lab.get_all_vars()
         return lab
 
-    @cherrypy.expose(alias="getAwsUsers")
-    def get_aws_users(self):
-        """ Returns all AWS users. """
-        if self._check_preflight():
-            return
-        self._check_authorization()
-
-        users = self._store.users.refresh_users()
-        return users
-
     @cherrypy.expose(alias="changeLabPassword")
     def change_lab_password(self):
         """ Changes the lab password. """
@@ -125,14 +115,19 @@ class AdminController():
         users = ["student35", "student36", "student37", "student38", "student39", "student40"]
         self._store.users.allocate_custom_users(users)
 
-    @cherrypy.expose(alias="getAwsStats")
-    def get_aws_stats(self):
-        """ Returns stats about the AWS resources used. """
+    @cherrypy.expose(alias="getAwsData")
+    def get_aws_data(self):
+        """ Returns the AWS users and AWS resource stats. """
         if self._check_preflight():
             return
         self._check_authorization()
 
-        resources = self._store.resources.refresh_resources()
-        print(resources)
-        return resources
+        users = self._store.users.refresh_users()
+        self._store.resources.refresh_resources()
+        usernames = [user["username"] for user in users]
+
+        return {
+            "users": users,
+            "stats": self._store.resources.get_stats(usernames)
+        }
 

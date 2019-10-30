@@ -3,6 +3,7 @@
 import string
 import random
 from collections import OrderedDict
+from collections.abc import Mapping
 
 
 class StudentAccountCollection():
@@ -16,6 +17,8 @@ class StudentAccountCollection():
         """ Loads users' persisted properties (allocation token and password). """
         if not users:
             return
+        if isinstance(users, Mapping):
+            users = users.values()
         for user in users:
             user_obj = self.get_user(user["username"], create=True)
             user_obj.password = user.get("password", None)
@@ -75,8 +78,7 @@ class StudentAccountCollection():
     def export(self, persistent=False):
         """ Exports all user accounts as list of standard objects (for
         persistence or web presentation). """
-        return [user.export(persistent=persistent)
-                for user in self._users.values()]
+        return [user.export(persistent=persistent) for user in self._users.values()]
 
 
 class StudentAccount():

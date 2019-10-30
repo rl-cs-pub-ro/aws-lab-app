@@ -51,8 +51,8 @@ export class RLAwsAdmin extends RLAwsAPI {
       });
   }
 
-  getAwsUsers() {
-    return this.get("/admin/getAwsUsers")
+  getAwsData() {
+    return this.get("/admin/getAwsData")
       .then((resp) => {
         return resp.body;
       }, (err) => {

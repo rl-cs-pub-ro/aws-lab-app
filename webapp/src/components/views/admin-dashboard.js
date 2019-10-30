@@ -7,7 +7,8 @@ import '@polymer/iron-icons/iron-icons.js';
 // This element is connected to the Redux store.
 import { store } from '../../store.js';
 import {
-  loadStudentUsers, loadLabSettings, changeLabPassword
+  loadStudentUsers, loadLabSettings, changeLabPassword,
+  startRefresh, stopRefresh
 } from '../../actions/admin.js';
 
 import { SharedStyles } from '../styles/shared-styles.js';
@@ -28,6 +29,32 @@ export class RLAwsAdminDashboard extends connect(store)(PageViewElement) {
     return [
       SharedStyles,
       css`
+        .stats {
+          display: flex;
+          flex-direction: row;
+          justify-content: flex-start;
+          flex-wrap: wrap;
+        }
+        .statsItem {
+          width: 150px;
+          display: flex;
+          flex-direction: row;
+          justify-content: space-between;
+          margin: 5px;
+          margin-right: 15px;
+        }
+        .statsItem .caption {
+          flex: 1;
+          font-style: italic;
+          text-align: right;
+          color: #333;
+        }
+        .statsItem .value {
+          margin-left: 10px;
+          font-weight: bold;
+          color: #060;
+        }
+
         button {
           cursor: pointer;
           padding: 5px 10px;
@@ -69,8 +96,12 @@ export class RLAwsAdminDashboard extends connect(store)(PageViewElement) {
       <h3>AWS Dashboard</h3>
       <p><b>Stats</b></p>
       <div class="stats">
-        Users Allocated: TODO <br />
-        Resources: TODO <br />
+        ${Object.keys(this._stats ? this._stats : {}).map((key) => html`
+          <div class="statsItem">
+            <span class="caption">${key}: </span>
+            <span class="value">${this._stats[key]}</span>
+          </div>
+        `)}
       </div>
       <p><b>Actions:</b></p>
       <div>
@@ -106,8 +137,9 @@ export class RLAwsAdminDashboard extends connect(store)(PageViewElement) {
       if (this.active) {
         this._labPasswordError = '';
         store.dispatch(loadLabSettings());
+        store.dispatch(startRefresh());
       } else {
-        // store.dispatch(stopUsersRefresh());
+        store.dispatch(stopRefresh());
       }
     }
   }
@@ -123,7 +155,7 @@ export class RLAwsAdminDashboard extends connect(store)(PageViewElement) {
       this._labPasswordError = '';
       this._labPasswordSuccess = false;
     }
-    // this._users = state.admin.users;
+    this._stats = state.admin.stats.totals;
   }
 }
 

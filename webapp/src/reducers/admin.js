@@ -1,5 +1,5 @@
 import {
-  ADMIN_UPDATE_AUTH, ADMIN_UPDATE_LAB, ADMIN_UPDATE_USERS, ADMIN_UPDATE_ACTION,
+  ADMIN_UPDATE_AUTH, ADMIN_UPDATE_LAB, ADMIN_UPDATE_AWS, ADMIN_UPDATE_ACTION,
 } from '../actions/admin.js';
 
 const INITIAL_STATE = {
@@ -7,6 +7,7 @@ const INITIAL_STATE = {
   authError: '',
   authLoaded: false,
   users: {},
+  stats: {},
   lab: {},
   actionStatus: {},
 };
@@ -26,10 +27,15 @@ const adminReducer = (state = INITIAL_STATE, action) => {
         ...state,
         lab: action.lab,
       };
-    case ADMIN_UPDATE_USERS:
+    case ADMIN_UPDATE_AWS:
+      let usersMap = action.data.users.reduce((obj, user) => {
+        obj[user.username] = user;
+        return obj;
+      }, {});
       return {
         ...state,
-        users: action.users,
+        users: usersMap,
+        stats: action.data.stats,
       };
     case ADMIN_UPDATE_ACTION:
       let actionStatus = {...state.actionStatus};

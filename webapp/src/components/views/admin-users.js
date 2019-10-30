@@ -8,7 +8,7 @@ import '@polymer/iron-icons/iron-icons.js';
 
 // This element is connected to the Redux store.
 import { store } from '../../store.js';
-import { startUsersRefresh, stopUsersRefresh } from '../../actions/admin.js';
+import { startRefresh, stopRefresh } from '../../actions/admin.js';
 
 import { SharedStyles } from '../styles/shared-styles.js';
 
@@ -18,6 +18,7 @@ export class RLAwsAdminUsers extends connect(store)(PageViewElement) {
     return {
       active: { type: Boolean },
       _users: { type: Object },
+      _userStats: { type: Object },
       _usersLoadError: { type: String },
       _openUser: { type: String },
     };
@@ -107,6 +108,33 @@ export class RLAwsAdminUsers extends connect(store)(PageViewElement) {
           border-color: #888;
         }
 
+        .stats {
+          display: flex;
+          flex-direction: row;
+          justify-content: flex-start;
+          flex-wrap: wrap;
+        }
+        .statsItem {
+          width: 150px;
+          display: flex;
+          flex-direction: row;
+          justify-content: space-between;
+          margin: 5px;
+          margin-right: 15px;
+        }
+        .statsItem .caption {
+          flex: 1;
+          font-style: italic;
+          text-align: right;
+          color: #333;
+        }
+        .statsItem .value {
+          margin-left: 10px;
+          font-weight: bold;
+          color: #060;
+        }
+
+
         .users-table .lastdate {
           flex-grow: 1;
           width: 130px;
@@ -127,12 +155,12 @@ export class RLAwsAdminUsers extends connect(store)(PageViewElement) {
         ${this._usersLoadError}
       </div>
       <div class="users-table">
-        ${this._sortUsers().map((key) => {
-          const item = this._users[key];
+        ${this._sortUsers().map((username) => {
+          const item = this._users[username];
           return html`
             <div class="item ${this._formatItem(item)}"
                  title="${this._itemTitle(item)}"
-                 @click="${(event) => this._userClick(key, event)}">
+                 @click="${(event) => this._userClick(username, event)}">
               <span class="username openable">${item.username}</span>
               <span class="lastdate openable ${this._colorLastUsed(item.awsStats.last_used)}">
                 ${this._formatDate(item.awsStats.last_used)}
@@ -140,10 +168,15 @@ export class RLAwsAdminUsers extends connect(store)(PageViewElement) {
               ${item.allocatedToken ?  html`<iron-icon class="allocated openable"
                   icon="account-box"></iron-icon>` : ''}
               <div class="details">
-                <div><span class="label">Instances</span>: <span class="value">TODO</span></div>
-                <div><span class="label">VPCs</span>: <span class="value">TODO</span></div>
-                <div><span class="label">Subnets</span>: <span class="value">TODO</span></div>
-                <div><span class="label">GWs</span>: <span class="value">TODO</span></div>
+                <div class="stats">
+                  ${Object.keys(this._userStats[username] ? this._userStats[username] : [] )
+                      .map((key) => html`
+                    <div class="statsItem">
+                      <span class="caption">${key}: </span>
+                      <span class="value">${this._userStats[username][key]}</span>
+                    </div>
+                  `)}
+                  </div>
                 <div class="buttons">
                   <button title="Clean up all user's resources">
                     <iron-icon icon="delete-forever"></iron-icon> Clean all</button>
@@ -228,9 +261,9 @@ export class RLAwsAdminUsers extends connect(store)(PageViewElement) {
     if (changedProps.has('active')) {
       if (this.active) {
         this._usersLoadError = '';
-        store.dispatch(startUsersRefresh());
+        store.dispatch(startRefresh());
       } else {
-        store.dispatch(stopUsersRefresh());
+        store.dispatch(stopRefresh());
       }
     }
   }
@@ -244,6 +277,7 @@ export class RLAwsAdminUsers extends connect(store)(PageViewElement) {
     } else {
       this._usersLoadError = '';
     }
+    this._userStats = state.admin.stats.users;
   }
 }
 

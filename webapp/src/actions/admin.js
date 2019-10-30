@@ -5,8 +5,7 @@ import { showAppError } from "./app.js";
 
 export const ADMIN_UPDATE_AUTH = "ADMIN_UPDATE_AUTH";
 export const ADMIN_UPDATE_LAB = "ADMIN_UPDATE_LAB";
-export const ADMIN_UPDATE_USERS = 'ADMIN_UPDATE_USERS';
-export const ADMIN_UPDATE_RESOURCES = 'ADMIN_UPDATE_RESOURCES';
+export const ADMIN_UPDATE_AWS = 'ADMIN_UPDATE_AWS';
 export const ADMIN_UPDATE_ACTION = 'ADMIN_UPDATE_ACTION';
 
 const refreshTime = 10; // seconds
@@ -76,43 +75,38 @@ export const logoutAdmin = () => (dispatch) => {
     });
 };
 
-export const loadStudentUsers = () => (dispatch) => {
+export const fetchAwsData = () => (dispatch) => {
   if (!adminModel) {
     dispatch(showAppError(modelError));
     return;
   }
-  adminModel.getAwsUsers()
-    .then((users) => {
-      // store the users as map
-      let usersMap = users.reduce((obj, user) => {
-        obj[user.username] = user;
-        return obj;
-      }, {});
-      dispatch({ type: ADMIN_UPDATE_USERS, users: usersMap });
-      dispatch(_actionResults('loadStudentUsers', {success: true}));
+  adminModel.getAwsData()
+    .then((awsData) => {
+      dispatch({ type: ADMIN_UPDATE_AWS, data: awsData });
+      dispatch(_actionResults('fetchAwsData', {success: true}));
     }, (err) => {
-      dispatch(_actionResults('loadStudentUsers', {error: err}));
+      dispatch(_actionResults('fetchAwsData', {error: err}));
     });
 };
 
-let usersRefreshInterval = null;
+let refreshInterval = null;
 
-export const startUsersRefresh = () => (dispatch) => {
+export const startRefresh = () => (dispatch) => {
   if (!adminModel) {
     dispatch(showAppError(modelError));
     return;
   }
   // do an extra refresh, then setup the interval
-  dispatch(loadStudentUsers());
-  if (usersRefreshInterval) return;
-  usersRefreshInterval = setInterval(() => {
-    dispatch(loadStudentUsers());
+  dispatch(fetchAwsData());
+  if (refreshInterval) return;
+  refreshInterval = setInterval(() => {
+    dispatch(fetchAwsData());
   }, refreshTime * 1000);
 };
 
-export const stopUsersRefresh = () => (dispatch) => {
-  if (!usersRefreshInterval) return;
-  clearInterval(usersRefreshInterval);
+export const stopRefresh = () => (dispatch) => {
+  if (!refreshInterval) return;
+  clearInterval(refreshInterval);
 };
 
 export const loadLabSettings = () => (dispatch) => {
