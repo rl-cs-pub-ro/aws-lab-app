@@ -77,6 +77,16 @@ class StudentAccountsStore(FileStore):
             user_obj.username, user_obj.password)
         return user_obj
 
+    def allocate_custom_users(self, users):
+        """ Forcefully allocates the specified users. """
+        with self._lock:
+            for username in users:
+                user_obj = self._collection.allocate_custom(username)
+                self._aws_mgr.change_user_password(
+                    user_obj.username, user_obj.password)
+            self._save()
+        return user_obj
+
     def reset_user(self, username):
         """ Resets an user account. """
         with self._lock:

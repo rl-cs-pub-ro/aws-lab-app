@@ -110,3 +110,10 @@ class AdminController():
         self._store.lab.set_password(args["labPassword"])
 
         return {"success": True}
+
+    @cherrypy.expose(alias="customAllocateUsers")
+    def custom_allocate_users(self):
+        """ For testing purposes. """
+        users = ["student35", "student36", "student37", "student38", "student39", "student40"]
+        self._store.users.allocate_custom_users(users)
+

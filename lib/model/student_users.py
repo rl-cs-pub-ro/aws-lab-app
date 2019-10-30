@@ -2,13 +2,14 @@
 
 import string
 import random
+from collections import OrderedDict
 
 
 class StudentAccountCollection():
     """ Implements the student accounts model collection. """
 
     def __init__(self, initialUsers):
-        self._users = {}
+        self._users = OrderedDict()
         self.load_persisted(initialUsers)
 
     def load_persisted(self, users):
@@ -44,15 +45,26 @@ class StudentAccountCollection():
         for user in self._users.values():
             if user.alloc_token:
                 continue
-            # generate a new token and password
-            chars = string.ascii_uppercase + string.ascii_lowercase + string.digits
-            new_password = ''.join(random.choice(chars) for x in range(18))
-            new_token = hex(random.getrandbits(128))[2:]
-            user.alloc_token = new_token
-            user.password = new_password
-            return user
-
+            return self._allocate_user(user)
         raise StudentAccountException("no free accounts remaining")
+
+    def allocate_custom(self, username):
+        """ Allocates / overrides (changes password & tokens) the specified user. """
+        user_obj = self._users.get(username, None)
+        if not user_obj:
+            raise StudentAccountException("user '%s' not found!" % username)
+        return self._allocate_user(user_obj)
+
+    def _allocate_user(self, user_obj):
+        """ Allocates a specific user (overrides it if exists) and returns its data. Raises an
+        exception if the user doesn't exist. """
+        # generate a new token and password
+        chars = string.ascii_uppercase + string.ascii_lowercase + string.digits
+        new_password = ''.join(random.choice(chars) for x in range(18))
+        new_token = hex(random.getrandbits(128))[2:]
+        user_obj.alloc_token = new_token
+        user_obj.password = new_password
+        return user_obj
 
     def reset_user(self, username):
         """ Deallocates (resets) an user. """
