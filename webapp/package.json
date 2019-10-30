@@ -17,6 +17,7 @@
     "test:regenerate_screenshots": "mocha test/integration/screenshots-baseline/regenerate.js --timeout=15000"
   },
   "dependencies": {
+    "@polymer/iron-icons": "^3.0.1",
     "@webcomponents/webcomponentsjs": "^2.3.0",
     "lit-element": "^2.2.1",
     "pwa-helpers": "^0.9.0",

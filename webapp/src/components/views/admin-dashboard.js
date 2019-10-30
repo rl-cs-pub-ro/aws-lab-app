@@ -1,6 +1,8 @@
 import { html, css } from 'lit-element';
 import { connect } from 'pwa-helpers/connect-mixin.js';
 import { PageViewElement } from '../page-view-element.js';
+import '@polymer/iron-icon/iron-icon.js';
+import '@polymer/iron-icons/iron-icons.js';
 
 // This element is connected to the Redux store.
 import { store } from '../../store.js';
@@ -14,6 +16,7 @@ export class RLAwsAdminDashboard extends connect(store)(PageViewElement) {
     return {
       active: { type: Boolean },
       _stats: { type: Object },
+      _labPassword: { type: String },
       _labPasswordError: { type: String },
     };
   }
@@ -22,48 +25,27 @@ export class RLAwsAdminDashboard extends connect(store)(PageViewElement) {
     return [
       SharedStyles,
       css`
-        .users-table {
-          display: flex;
-          flex-direction: row;
-          align-items: stretch;
-          align-content: stretch;
-          flex-wrap: wrap;
-          border-bottom: 0;
+        button {
+          cursor: pointer;
+          padding: 5px 10px;
+          border: 1px solid #AAA;
+          background: #EFEFEF;
+          border-radius: 4px;
+          vertical-align: middle;
         }
-        .users-table .item {
-          display: flex;
-          justify-content: stretch;
-          width: 200px;
-          flex-grow: 1;
-          flex-direction: column;
-          position: relative;
-          padding: 10px 10px;
-          border: 1px solid #CCC;
-          margin-right: 20px;
-          margin-bottom: 10px;
+        button:hover {
+          cursor: pointer;
+          background: #FFFFFF;
+          border-color: #888;
         }
-        .users-table .item:hover {
-          background: #EEE;
+        input {
+          padding: 5px 10px;
+          line-height: 22px;
+          border: 1px solid #AAA;
+          vertical-align: middle;
         }
-        .users-table .username {
-          font-weight: bold;
-          font-weight: 500;
-          margin-bottom: 5px;
-          margin-right: 30px;
-        }
-        .users-table .username.alloc {
-          color: #099;
-        }
-        .users-table .lastdate {
-          display: inline-block;
-          white-space: nowrap;
-          color: #555;
-        }
-        .users-table .lastdate.never { color: #B77; }
-        .users-table .lastdate.recent { color: #7B7; }
-
         input.labPassword {
-          width: 5em;
+          width: 9em;
           margin-left: 10px;
           background: white;
           color: #DDDDDD;
@@ -85,13 +67,18 @@ export class RLAwsAdminDashboard extends connect(store)(PageViewElement) {
       </div>
       <p><b>Actions:</b></p>
       <div>
-        <form class="bordered" action="" @submit="${this._submitLabPassword}">
-          Lab password: <input class="labPassword" type="text" name="labPassword" />
-          <button type="submit">Change</button>
+        <form class="labSettings" action="" @submit="${this._submitLabPassword}">
+          Lab password: <input class="labPassword" type="text" name="labPassword"
+              value="${this._labPassword}" />
+          <button type="submit"><iron-icon icon="create"></iron-icon> Change</button>
           <div class="error errorMessage" ?visible="${this._labPasswordError}">
             ${this._labPasswordError}
           </div>
         </form>
+        <p>
+          AWS Resources: <button title="Clean up and unassign all users">
+            <iron-icon icon="delete-forever"></iron-icon> Clean all users</button>
+        </p>
       </div>
     </section>`;
   }
@@ -108,7 +95,7 @@ export class RLAwsAdminDashboard extends connect(store)(PageViewElement) {
     if (changedProps.has('active')) {
       if (this.active) {
         this._labPasswordError = '';
-        // store.dispatch(startUsersRefresh());
+        store.dispatch(loadLabSettings());
       } else {
         // store.dispatch(stopUsersRefresh());
       }
@@ -117,6 +104,7 @@ export class RLAwsAdminDashboard extends connect(store)(PageViewElement) {
 
   // This is called every time something is updated in the store.
   stateChanged(state) {
+    this._labPassword = state.admin.lab ? state.admin.lab.password : "";
     let changeLabPasswordStatus = state.admin.actionStatus.changeLabPassword;
     if (changeLabPasswordStatus && changeLabPasswordStatus.error) {
       this._labPasswordError = changeLabPasswordStatus.error;

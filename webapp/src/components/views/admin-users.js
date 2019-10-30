@@ -1,8 +1,10 @@
-import { html, css } from 'lit-element';
+import { html, css, repeat } from 'lit-element';
 import { connect } from 'pwa-helpers/connect-mixin.js';
 import { PageViewElement } from '../page-view-element.js';
 
 import { format, render, cancel, register } from 'timeago.js';
+import '@polymer/iron-icon/iron-icon.js';
+import '@polymer/iron-icons/iron-icons.js';
 
 // This element is connected to the Redux store.
 import { store } from '../../store.js';
@@ -17,6 +19,7 @@ export class RLAwsAdminUsers extends connect(store)(PageViewElement) {
       active: { type: Boolean },
       _users: { type: Object },
       _usersLoadError: { type: String },
+      _openUser: { type: String },
     };
   }
 
@@ -34,30 +37,80 @@ export class RLAwsAdminUsers extends connect(store)(PageViewElement) {
         }
         .users-table .item {
           display: flex;
-          justify-content: stretch;
+          justify-content: flex-start;
+          align-items: center;
+          align-content: stretch;
           width: 200px;
           flex-grow: 1;
-          flex-direction: column;
+          flex-direction: row;
+          flex-wrap: wrap;
           position: relative;
           padding: 10px 10px;
           border: 1px solid #CCC;
           margin-right: 20px;
           margin-bottom: 10px;
+          transition: all 0.4s;
         }
         .users-table .item:hover {
           background: #EEE;
         }
+        .users-table .item.open {
+          cursor: default;
+          width: 100%;
+          border: 1px solid #888;
+          background: #EBF9FF;
+        }
+        .users-table .item .openable {
+          cursor: pointer;
+        }
         .users-table .username {
+          width: 80px;
+          display: block;
           font-weight: bold;
           font-weight: 500;
-          margin-bottom: 5px;
-          margin-right: 30px;
         }
         .users-table .item.alloc .username {
           color: #099;
         }
+        .users-table .item.open .username {
+          font-weight: bold;
+        }
+        .users-table .item .allocated {
+          flex-grow: 0;
+          width: 24px;
+          color: #009;
+        }
+        .users-table .item .details {
+          display: none;
+          flex-grow: 1;
+          width: 100%;
+        }
+        .users-table .item.open .details {
+          margin-top: 10px;
+          display: block;
+        }
+        .users-table .item .details .buttons {
+          width: 100%;
+          flex-grow: 1;
+          margin-top: 10px;
+        }
+        .users-table .item .details .buttons button {
+          cursor: pointer;
+          padding: 5px 10px;
+          border: 1px solid #AAA;
+          background: #EFEFEF;
+          border-radius: 4px;
+        }
+        .users-table .item .details .buttons button:hover {
+          cursor: pointer;
+          background: #FFFFFF;
+          border-color: #888;
+        }
+
         .users-table .lastdate {
-          display: inline-block;
+          flex-grow: 1;
+          width: 130px;
+          display: block;
           white-space: nowrap;
           color: #555;
         }
@@ -77,11 +130,27 @@ export class RLAwsAdminUsers extends connect(store)(PageViewElement) {
         ${this._sortUsers().map((key) => {
           const item = this._users[key];
           return html`
-            <div class="item ${this._formatItem(item)}" title="${this._itemTitle(item)}">
-              <span class="username">${item.username}</span>
-              <span class="lastdate ${this._colorLastUsed(item.awsStats.last_used)}">
+            <div class="item ${this._formatItem(item)}"
+                 title="${this._itemTitle(item)}"
+                 @click="${(event) => this._userClick(key, event)}">
+              <span class="username openable">${item.username}</span>
+              <span class="lastdate openable ${this._colorLastUsed(item.awsStats.last_used)}">
                 ${this._formatDate(item.awsStats.last_used)}
               </span>
+              ${item.allocatedToken ?  html`<iron-icon class="allocated openable"
+                  icon="account-box"></iron-icon>` : ''}
+              <div class="details">
+                <div><span class="label">Instances</span>: <span class="value">TODO</span></div>
+                <div><span class="label">VPCs</span>: <span class="value">TODO</span></div>
+                <div><span class="label">Subnets</span>: <span class="value">TODO</span></div>
+                <div><span class="label">GWs</span>: <span class="value">TODO</span></div>
+                <div class="buttons">
+                  <button title="Clean up all user's resources">
+                    <iron-icon icon="delete-forever"></iron-icon> Clean all</button>
+                  <button title="Clean up and unassign the user">
+                    <iron-icon icon="cancel"></iron-icon> Unassign</button>
+                </div>
+              </div>
             </div>
           `;
         })}
@@ -112,10 +181,14 @@ export class RLAwsAdminUsers extends connect(store)(PageViewElement) {
     return s + (ss ? ' (' + ss + ')' : '');
   }
   _formatItem(item) {
+    let cls = [];
     if (item.allocatedToken) {
-      return 'alloc';
+      cls.push('alloc');
     }
-    return '';
+    if (item.username == this._openUser) {
+      cls.push('open');
+    }
+    return cls.join(' ');
   }
 
   _colorLastUsed(date) {
@@ -128,6 +201,27 @@ export class RLAwsAdminUsers extends connect(store)(PageViewElement) {
   _formatDate(date) {
     if (!date) return 'never used';
     return 'logged ' + format(new Date(date * 1000));
+  }
+
+  _userClick(username, event) {
+    // check if the target is openable
+    let elem = event.target;
+    let openable = false;
+    while (elem && elem != this.shadowRoot) {
+      if (elem.classList.contains("openable")) {
+        openable = true;
+        break;
+      }
+      elem = elem.parentNode;
+    }
+    
+    if (!openable) return;
+    event.preventDefault();
+    if (this._openUser == username) {
+      this._openUser = ''; // close it
+      return;
+    }
+    this._openUser = username;
   }
 
   updated(changedProps) {
