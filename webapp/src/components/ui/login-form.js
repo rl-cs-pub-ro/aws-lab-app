@@ -37,13 +37,13 @@ export class LoginForm extends LitElement {
           padding: 3px 10px;
         }
 
-        .errorMessage {
+        .message {
           visibility: hidden; opacity: 0;
           padding: 10px 0;
           height: 0; overflow: hidden;
           transition: visibility 0s, opacity 0.5s linear;
         }
-        .errorMessage[visible] {
+        .message[visible] {
           visibility: visible; opacity: 1;
           height: auto; overflow: initial;
           display: block;
@@ -69,7 +69,7 @@ export class LoginForm extends LitElement {
           <button type="submit">Login</button>
           <loading-spinner ?visible="${this.loading}"></loading-spinner>
         </div>
-        <div class="error errorMessage" ?visible="${this.authError}">
+        <div class="error message" ?visible="${this.authError}">
           Authentication failed: ${this.authError}
         </div>
       </form>

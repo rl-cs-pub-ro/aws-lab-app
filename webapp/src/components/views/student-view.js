@@ -59,7 +59,7 @@ export class RLAwsStudentView extends connect(store)(PageViewElement) {
           <input name="labPassword" type="text" />
           <button type="submit">Proceed</button>
           <loading-spinner ?visible="${this._loadingAction}"></loading-spinner>
-          <div class="error errorMessage" ?visible="${this._authFailed}">
+          <div class="error message" ?visible="${this._authFailed}">
             ${'Authentication failed: ' + this._authFailed}
           </div>
         </form>

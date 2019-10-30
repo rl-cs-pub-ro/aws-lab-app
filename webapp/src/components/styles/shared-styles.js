@@ -21,18 +21,18 @@ export const SharedStyles = css`
 
   .error {
     color: #A00;
-    font-weight: bold;
   }
   .success {
     color: #5A5;
   }
-  .errorMessage {
+  .message {
     visibility: hidden; opacity: 0;
+    font-weight: bold;
     padding: 0;
     height: 0; overflow: hidden;
     transition: visibility 0s, opacity 0.5s linear;
   }
-  .errorMessage[visible] {
+  .message[visible] {
     visibility: visible; opacity: 1;
     padding: 10px 0;
     height: auto; overflow: initial;

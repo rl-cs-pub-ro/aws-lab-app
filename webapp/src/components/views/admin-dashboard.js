@@ -20,6 +20,7 @@ export class RLAwsAdminDashboard extends connect(store)(PageViewElement) {
       _stats: { type: Object },
       _labPassword: { type: String },
       _labPasswordError: { type: String },
+      _labPasswordSuccess: { type: Boolean },
     };
   }
 
@@ -55,6 +56,10 @@ export class RLAwsAdminDashboard extends connect(store)(PageViewElement) {
         input.labPassword:focus {
           color: #444;
         }
+
+        button.reset {
+          margin-left: 10px;
+        }
       `
     ];
   }
@@ -73,12 +78,15 @@ export class RLAwsAdminDashboard extends connect(store)(PageViewElement) {
           Lab password: <input class="labPassword" type="text" name="labPassword"
               value="${this._labPassword}" />
           <button type="submit"><iron-icon icon="create"></iron-icon> Change</button>
-          <div class="error errorMessage" ?visible="${this._labPasswordError}">
+          <div class="error message" ?visible="${this._labPasswordError}">
             ${this._labPasswordError}
+          </div>
+          <div class="success message" ?visible="${this._labPasswordSuccess}">
+            Lab password changed successfully!
           </div>
         </form>
         <p>
-          AWS Resources: <button title="Clean up and unassign all users">
+          AWS Resources: <button class="reset" title="Clean up and unassign all users">
             <iron-icon icon="delete-forever"></iron-icon> Clean all users</button>
         </p>
       </div>
@@ -108,10 +116,12 @@ export class RLAwsAdminDashboard extends connect(store)(PageViewElement) {
   stateChanged(state) {
     this._labPassword = state.admin.lab ? state.admin.lab.password : "";
     let changeLabPasswordStatus = state.admin.actionStatus.changeLabPassword;
-    if (changeLabPasswordStatus && changeLabPasswordStatus.error) {
+    if (changeLabPasswordStatus) {
       this._labPasswordError = changeLabPasswordStatus.error;
+      this._labPasswordSuccess = changeLabPasswordStatus.success;
     } else {
       this._labPasswordError = '';
+      this._labPasswordSuccess = false;
     }
     // this._users = state.admin.users;
   }

@@ -123,7 +123,7 @@ export class RLAwsAdminUsers extends connect(store)(PageViewElement) {
   render() {
     return html`<section>
       <h3>AWS Users</h3>
-      <div class="error errorMessage" ?visible="${this._usersLoadError}">
+      <div class="error message" ?visible="${this._usersLoadError}">
         ${this._usersLoadError}
       </div>
       <div class="users-table">
