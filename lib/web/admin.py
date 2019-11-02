@@ -173,7 +173,9 @@ class AdminController():
 
         errors = self._store.resources.clean_aws_resources(username)
         if errors:
-            error_msgs = []
+            error_msgs = ["Warning: the instances take longer to stop and cause other resources "
+                          "to appear as busy." +
+                          "Please try the cleanup process again after 30 seconds.\n"]
             for err in errors:
                 if isinstance(err, ClientError):
                     error_msgs.append(str(err.operation_name) + ": " +

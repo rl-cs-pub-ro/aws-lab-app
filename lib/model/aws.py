@@ -97,7 +97,12 @@ class AWSResource():
 
     @staticmethod
     def _extract_tag(raw_resource, name):
-        for tag in raw_resource.get("Tags", []):
+        tagset = []
+        if "Tags" in raw_resource:
+            tagset = raw_resource["Tags"]
+        elif "TagSet" in raw_resource:
+            tagset = raw_resource["TagSet"]
+        for tag in tagset:
             if tag["Key"] == name:
                 return tag["Value"].lower()
         return ""
