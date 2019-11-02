@@ -54,6 +54,7 @@ class AwsResourcesStore():
         resources = self._collection.get_filtered(filter_student=username)
         task = CleanupUserResourcesTask(resource_map=resources, dryrun=False)
         future = self._thread_pool.queue_task(task)
+        future.add_done_callback(lambda _: self.refresh_resources(force=True))
         return future.result()
 
     def _fetch_resources(self):

@@ -115,6 +115,7 @@ export const startRefresh = () => (dispatch) => {
 export const stopRefresh = () => (dispatch) => {
   if (!refreshInterval) return;
   clearInterval(refreshInterval);
+  refreshInterval = null;
 };
 
 export const loadLabSettings = () => (dispatch) => {
@@ -157,8 +158,10 @@ export const cleanAwsResources = (username, all) => (dispatch) => {
   adminModel.cleanAwsResources(username, all)
     .then(() => {
       dispatch(setActionResults('cleanAwsResources', {success: true}));
+      dispatch(fetchAwsData());
     }, (err) => {
       dispatch(setActionResults('cleanAwsResources', {error: err}));
+      dispatch(fetchAwsData());
     });
 };
 
