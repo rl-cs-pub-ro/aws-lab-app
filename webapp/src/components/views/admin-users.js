@@ -184,7 +184,7 @@ export class RLAwsAdminUsers extends connect(store)(PageViewElement) {
                 <div class="buttons">
                   <button @click="${(event) => this._resetAwsUserClick(username, event)}"
                       title="Clean up all user's resources">
-                    <iron-icon icon="delete-forever"></iron-icon> Clean all</button>
+                    <iron-icon icon="delete-forever"></iron-icon> Clean Resources</button>
                   <button title="Deallocate the user"
                       @click="${(event) => this._deallocateUserClick(username, event)}">
                     <iron-icon icon="cancel"></iron-icon> Unassign</button>

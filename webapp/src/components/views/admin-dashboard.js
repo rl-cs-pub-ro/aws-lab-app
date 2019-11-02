@@ -122,14 +122,14 @@ export class RLAwsAdminDashboard extends connect(store)(PageViewElement) {
         AWS Users: <button class="reset"
                            title="Deallocate all users (delete their login profiles)"
                            @click="${this._deallocateUserClick}">
-          <iron-icon icon="cancel"></iron-icon> Deallocate all</button>
+          <iron-icon icon="cancel"></iron-icon> Deallocate users</button>
           <action-results success-msg="All users deallocated!"
               .results="${this._deallocateRes}"></action-results>
         </p>
         <p>
         AWS Resources: <button class="reset" title="Clean up all AWS resources"
                                              @click="${this._resetAwsClick}">
-          <iron-icon icon="delete-forever"></iron-icon> Clean all users</button>
+          <iron-icon icon="delete-forever"></iron-icon> Clean resources</button>
           <action-results success-msg="All resources cleaned up (hopefully)!"
               .results="${this._cleanupRes}"></action-results>
         </p>

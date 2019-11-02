@@ -171,6 +171,7 @@ export const deallocateUser = (username, all) => (dispatch) => {
   adminModel.deallocateUser(username, all)
     .then(() => {
       dispatch(setActionResults('deallocateUser', {success: true}));
+      dispatch(fetchAwsData());
     }, (err) => {
       dispatch(setActionResults('deallocateUser', {error: err}));
     });
