@@ -114,6 +114,21 @@ export class RLAwsAdminUsers extends connect(store)(PageViewElement) {
           border-color: #888;
         }
 
+        .users-table .item .password {
+          display: none;
+        }
+        .users-table .item .password[visible] {
+          display: block;
+        }
+        .users-table .item .password span {
+          display: inline-block;
+          font-family: monospace;
+          color: #999;
+          padding: 3px 6px;
+          margin-left: 6px;
+          border: 1px dashed #999;
+        }
+
         .stats {
           display: flex;
           flex-direction: row;
@@ -139,7 +154,6 @@ export class RLAwsAdminUsers extends connect(store)(PageViewElement) {
           font-weight: bold;
           color: #060;
         }
-
 
         .users-table .lastdate {
           flex-grow: 1;
@@ -175,12 +189,15 @@ export class RLAwsAdminUsers extends connect(store)(PageViewElement) {
                 <div class="stats">
                   ${Object.keys(this._userStats[username] ? this._userStats[username] : [] )
                       .map((key) => html`
-                    <div class="statsItem">
-                      <span class="caption">${key}: </span>
-                      <span class="value">${this._userStats[username][key]}</span>
-                    </div>
-                  `)}
-                  </div>
+                        <div class="statsItem">
+                          <span class="caption">${key}: </span>
+                          <span class="value">${this._userStats[username][key]}</span>
+                        </div>
+                      `)}
+                </div>
+                <p class="password" ?visible="${!!item.password}">
+                  <i>Password: <span>${item.password}</span></i>
+                </p>
                 <div class="buttons">
                   <button @click="${(event) => this._resetAwsUserClick(username, event)}"
                       title="Clean up all user's resources">
