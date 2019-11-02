@@ -52,7 +52,7 @@ class AwsResourcesStore():
         """ Runs the AWS cleanup task. """
         self.refresh_resources()
         resources = self._collection.get_filtered(filter_student=username)
-        task = CleanupUserResourcesTask(resource_map=resources, dryrun=True)
+        task = CleanupUserResourcesTask(resource_map=resources, dryrun=False)
         future = self._thread_pool.queue_task(task)
         return future.result()
 

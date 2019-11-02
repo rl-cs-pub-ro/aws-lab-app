@@ -8,6 +8,7 @@ RESOURCE_TYPES = {
     # {"ResourceType": (IdKey,) }
     "Instances": ("InstanceId",),
     "KeyPairs": ("KeyName",),
+    "NetworkInterfaces": ("NetworkInterfaceId",),
     "Vpcs": ("VpcId",),
     "Addresses": ("AllocationId",),
     "InternetGateways": ("InternetGatewayId",),
@@ -111,15 +112,6 @@ class AWSResource():
 
 def normalize_resources(resource_type, raw_resources):
     """ Normalizes raw resource objects into a list of AWSResource objects. """
-    if resource_type == "Instances":
-        # special case: a reservation may contain multiple instances
-        raw_resources2 = []
-        for reservation in raw_resources["Reservations"]:
-            raw_resources2.extend(reservation.get("Instances", []))
-        raw_resources = raw_resources2
-    else:
-        raw_resources = raw_resources[resource_type]
-
     ret_resources = []
     for resource in raw_resources:
         res_obj = AWSResource(res_type=resource_type, raw_data=resource)

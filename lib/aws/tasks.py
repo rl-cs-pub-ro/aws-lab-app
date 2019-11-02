@@ -101,21 +101,48 @@ class RetrieveEC2Resources(AwsTask):
     def execute(self, aws):
         ec2 = aws.client("ec2")
         FETCH_TYPES = {
-            "Instances": ec2.describe_instances,
+            "Instances": (self.describe_instances, (ec2,)),
             "KeyPairs": ec2.describe_key_pairs,
+            "NetworkInterfaces": ec2.describe_network_interfaces,
             "Vpcs": ec2.describe_vpcs,
             "Addresses": ec2.describe_addresses,
             "InternetGateways": ec2.describe_internet_gateways,
-            "NatGateways": ec2.describe_nat_gateways,
+            "NatGateways": (self.describe_nat_gateways, (ec2,)),
             "Subnets": ec2.describe_subnets,
             "RouteTables": ec2.describe_route_tables,
             "SecurityGroups": ec2.describe_security_groups,
         }
         resources = {}
         for res_type, func in FETCH_TYPES.items():
-            resources[res_type] = func()
+            if isinstance(func, tuple):
+                resources[res_type] = func[0](*func[1])
+            else:
+                result = func()
+                if result.get(res_type, None):
+                    resources[res_type] = result[res_type]
+                else:
+                    resources[res_type] = []
+
         return resources
 
+    def describe_instances(self, ec2):
+        raw_instances = ec2.describe_instances()
+        # a reservation may contain multiple instances
+        instances = []
+        for reservation in raw_instances["Reservations"]:
+            for inst in reservation.get("Instances", []):
+                if inst["State"]["Name"] != "terminated":
+                    instances.append(inst)
+        return instances
+
+    def describe_nat_gateways(self, ec2):
+        raw_nat = ec2.describe_nat_gateways()
+        # exclude deleted gateways
+        nat_gws = []
+        for nat in raw_nat["NatGateways"]:
+            if nat["State"] != "deleted":
+                nat_gws.append(nat)
+        return nat_gws
 
 class CleanupUserResourcesTask(AwsTask):
     """ Deletes AWS user resources. """
@@ -140,6 +167,13 @@ class CleanupUserResourcesTask(AwsTask):
             for resource in resources:
                 with safexc:
                     ec2.delete_key_pair(KeyName=resource.id, DryRun=self.dryrun)
+            return safexc
+
+        def delete_network_interfaces(resources):
+            safexc = AWSSafeExec("delete_network_interfaces", log=log)
+            for resource in resources:
+                with safexc:
+                    ec2.delete_network_interface(NetworkInterfaceId=resource.id, DryRun=self.dryrun)
             return safexc
 
         def delete_vpcs(resources):
@@ -186,6 +220,17 @@ class CleanupUserResourcesTask(AwsTask):
         def delete_route_tables(resources):
             safexc = AWSSafeExec("delete_route_tables", log=log)
             for resource in resources:
+                is_main = False
+                for assoc in resource.raw.get("Associations", []):
+                    if assoc.get("Main", False):
+                        is_main = True
+                        continue
+                    with safexc:
+                        ec2.disassociate_route_table(
+                            AssociationId=assoc["RouteTableAssociationId"],
+                            DryRun=self.dryrun)
+                if is_main:
+                    continue  # main route tables are deleted with their VPC
                 with safexc:
                     ec2.delete_route_table(RouteTableId=resource.id, DryRun=self.dryrun)
             return safexc
@@ -193,14 +238,17 @@ class CleanupUserResourcesTask(AwsTask):
         def delete_security_groups(resources):
             safexc = AWSSafeExec("delete_security_groups", log=log)
             for resource in resources:
+                if resource.raw["GroupName"] == "default":
+                    continue  # default group cannot be deleted
                 with safexc:
                     ec2.delete_security_group(GroupId=resource.id, DryRun=self.dryrun)
             return safexc
 
-        ORDER = ["Instances", "KeyPairs", "RouteTables", "SecurityGroups", "Subnets", "Addresses",
+        ORDER = ["Instances", "KeyPairs", "RouteTables", "NetworkInterfaces", "SecurityGroups", "Subnets", "Addresses",
                  "InternetGateways", "NatGateways", "Vpcs", ]
         DELETE_FUNCS = {
             "Instances": delete_instances,
+            "NetworkInterfaces": delete_network_interfaces,
             "KeyPairs": delete_key_pairs,
             "Vpcs": delete_vpcs,
             "Addresses": delete_addresses,
