@@ -8,9 +8,10 @@ import '@polymer/iron-icons/iron-icons.js';
 
 // This element is connected to the Redux store.
 import { store } from '../../store.js';
-import { startRefresh, stopRefresh } from '../../actions/admin.js';
+import { setActionResults, startRefresh, stopRefresh, } from '../../actions/admin.js';
 
 import { SharedStyles } from '../styles/shared-styles.js';
+import { ActionResultsElem } from '../ui/actionResults.js';
 
 
 export class RLAwsAdminUsers extends connect(store)(PageViewElement) {
@@ -19,8 +20,8 @@ export class RLAwsAdminUsers extends connect(store)(PageViewElement) {
       active: { type: Boolean },
       _users: { type: Object },
       _userStats: { type: Object },
-      _usersLoadError: { type: String },
       _openUser: { type: String },
+      _loadAwsRes: { type: Object },
     };
   }
 
@@ -151,9 +152,7 @@ export class RLAwsAdminUsers extends connect(store)(PageViewElement) {
   render() {
     return html`<section>
       <h3>AWS Users</h3>
-      <div class="error message" ?visible="${this._usersLoadError}">
-        ${this._usersLoadError}
-      </div>
+      <action-results .results="${this._loadAwsRes}"></action-results>
       <div class="users-table">
         ${this._sortUsers().map((username) => {
           const item = this._users[username];
@@ -250,6 +249,7 @@ export class RLAwsAdminUsers extends connect(store)(PageViewElement) {
     
     if (!openable) return;
     event.preventDefault();
+    store.dispatch(setActionResults("cleanAwsResources", null));
     if (this._openUser == username) {
       this._openUser = ''; // close it
       return;
@@ -260,7 +260,7 @@ export class RLAwsAdminUsers extends connect(store)(PageViewElement) {
   updated(changedProps) {
     if (changedProps.has('active')) {
       if (this.active) {
-        this._usersLoadError = '';
+        this._openUser = '';
         store.dispatch(startRefresh());
       } else {
         store.dispatch(stopRefresh());
@@ -271,13 +271,8 @@ export class RLAwsAdminUsers extends connect(store)(PageViewElement) {
   // This is called every time something is updated in the store.
   stateChanged(state) {
     this._users = state.admin.users;
-    let loadUsersStatus = state.admin.actionStatus.loadStudentUsers;
-    if (loadUsersStatus && loadUsersStatus.error) {
-      this._usersLoadError = loadUsersStatus.error;
-    } else {
-      this._usersLoadError = '';
-    }
     this._userStats = state.admin.stats.users;
+    this._loadAwsRes = state.admin.actionResults.fetchAwsData;
   }
 }
 

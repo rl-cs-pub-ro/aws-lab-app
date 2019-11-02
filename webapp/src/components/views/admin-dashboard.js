@@ -7,11 +7,12 @@ import '@polymer/iron-icons/iron-icons.js';
 // This element is connected to the Redux store.
 import { store } from '../../store.js';
 import {
-  loadStudentUsers, loadLabSettings, changeLabPassword,
-  startRefresh, stopRefresh
+  setActionResults, loadStudentUsers, loadLabSettings, changeLabPassword,
+  startRefresh, stopRefresh, 
 } from '../../actions/admin.js';
 
 import { SharedStyles } from '../styles/shared-styles.js';
+import { ActionResultsElem } from '../ui/actionResults.js';
 
 
 export class RLAwsAdminDashboard extends connect(store)(PageViewElement) {
@@ -20,8 +21,8 @@ export class RLAwsAdminDashboard extends connect(store)(PageViewElement) {
       active: { type: Boolean },
       _stats: { type: Object },
       _labPassword: { type: String },
-      _labPasswordError: { type: String },
-      _labPasswordSuccess: { type: Boolean },
+      _loadAwsRes: { type: Object },
+      _changePassRes: { type: Object },
     };
   }
 
@@ -94,7 +95,10 @@ export class RLAwsAdminDashboard extends connect(store)(PageViewElement) {
   render() {
     return html`<section>
       <h3>AWS Dashboard</h3>
-      <p><b>Stats</b></p>
+      <p>
+        <b>Stats</b>
+        <action-results .results="${this._loadAwsRes}"></action-results>
+      </p>
       <div class="stats">
         ${Object.keys(this._stats ? this._stats : {}).map((key) => html`
           <div class="statsItem">
@@ -109,12 +113,8 @@ export class RLAwsAdminDashboard extends connect(store)(PageViewElement) {
           Lab password: <input class="labPassword" type="text" name="labPassword"
               value="${this._labPassword}" />
           <button type="submit"><iron-icon icon="create"></iron-icon> Change</button>
-          <div class="error message" ?visible="${this._labPasswordError}">
-            ${this._labPasswordError}
-          </div>
-          <div class="success message" ?visible="${this._labPasswordSuccess}">
-            Lab password changed successfully!
-          </div>
+          <action-results success-msg="Lab password changed successfully!"
+              .results="${this._changePassRes}"></action-results>
         </form>
         <p>
           AWS Resources: <button class="reset" title="Clean up and unassign all users">
@@ -135,11 +135,11 @@ export class RLAwsAdminDashboard extends connect(store)(PageViewElement) {
   updated(changedProps) {
     if (changedProps.has('active')) {
       if (this.active) {
-        this._labPasswordError = '';
         store.dispatch(loadLabSettings());
         store.dispatch(startRefresh());
       } else {
         store.dispatch(stopRefresh());
+        store.dispatch(setActionResults("changeLabPassword", null));
       }
     }
   }
@@ -147,15 +147,9 @@ export class RLAwsAdminDashboard extends connect(store)(PageViewElement) {
   // This is called every time something is updated in the store.
   stateChanged(state) {
     this._labPassword = state.admin.lab ? state.admin.lab.password : "";
-    let changeLabPasswordStatus = state.admin.actionStatus.changeLabPassword;
-    if (changeLabPasswordStatus) {
-      this._labPasswordError = changeLabPasswordStatus.error;
-      this._labPasswordSuccess = changeLabPasswordStatus.success;
-    } else {
-      this._labPasswordError = '';
-      this._labPasswordSuccess = false;
-    }
     this._stats = state.admin.stats.totals;
+    this._loadAwsRes = state.admin.actionResults.fetchAwsData;
+    this._changePassRes = state.admin.actionResults.changeLabPassword;
   }
 }
 

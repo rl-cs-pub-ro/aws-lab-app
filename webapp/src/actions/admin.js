@@ -18,12 +18,12 @@ let modelPromise = loadConfig().then((apiConfig) => {
 });
 const modelError = "Application failed to load properly";
 
-let _updateLogin = (status, err) => {
-  if (!err) err = '';
-  return { type: ADMIN_UPDATE_AUTH, authStatus: status, authError: err };
+let _updateLogin = (status) => {
+  return { type: ADMIN_UPDATE_AUTH, authStatus: status };
 };
-let _actionResults = (name, status) => {
-  return { type: ADMIN_UPDATE_ACTION, name, status };
+
+export const setActionResults = (name, results) => {
+  return { type: ADMIN_UPDATE_ACTION, name, results };
 };
 
 export const loadAdminCredentials = () => (dispatch) => {
@@ -36,6 +36,7 @@ export const loadAdminCredentials = () => (dispatch) => {
     });
     return;
   }
+  dispatch(setActionResults("auth", {loading: true}));
   adminModel.getStoredCredentials().then((credentials) => {
     if (credentials) {
       dispatch(_updateLogin(true));
@@ -43,7 +44,8 @@ export const loadAdminCredentials = () => (dispatch) => {
       dispatch(_updateLogin(false));
     }
   }, (err) => {
-    dispatch(_updateLogin(false, err));
+    dispatch(_updateLogin(false));
+    dispatch(setActionResults("auth", {error: err}));
   });
 };
 
@@ -53,14 +55,15 @@ export const loginAdmin = (username, password) => (dispatch) => {
     dispatch(showAppError(modelError));
     return;
   }
-  let authToken = null;
-  let authFailed = '';
+  dispatch(setActionResults("auth", null));
 
+  dispatch(setActionResults("auth", {loading: true}));
   adminModel.login(username, password)
     .then((result) => {
       dispatch(_updateLogin(true));
     }, (err) => {
-      dispatch(_updateLogin(false, err));
+      dispatch(_updateLogin(false));
+      dispatch(setActionResults("auth", {error: err}));
     });
 };
 
@@ -71,21 +74,23 @@ export const logoutAdmin = () => (dispatch) => {
   }
   adminModel.logout()
     .then((result) => {
-      dispatch(_updateLogin(false, ''));
+      dispatch(_updateLogin(false));
     });
 };
 
-export const fetchAwsData = () => (dispatch) => {
+export const fetchAwsData = (firstTime) => (dispatch) => {
   if (!adminModel) {
     dispatch(showAppError(modelError));
     return;
   }
+  if (firstTime)
+    dispatch(setActionResults("fetchAwsData", {loading: true}));
   adminModel.getAwsData()
     .then((awsData) => {
       dispatch({ type: ADMIN_UPDATE_AWS, data: awsData });
-      dispatch(_actionResults('fetchAwsData', {success: true}));
+      dispatch(setActionResults('fetchAwsData', {success: true}));
     }, (err) => {
-      dispatch(_actionResults('fetchAwsData', {error: err}));
+      dispatch(setActionResults('fetchAwsData', {error: err}));
     });
 };
 
@@ -97,7 +102,7 @@ export const startRefresh = () => (dispatch) => {
     return;
   }
   // do an extra refresh, then setup the interval
-  dispatch(fetchAwsData());
+  dispatch(fetchAwsData(true));
   if (refreshInterval) return;
   refreshInterval = setInterval(() => {
     dispatch(fetchAwsData());
@@ -114,6 +119,7 @@ export const loadLabSettings = () => (dispatch) => {
     dispatch(showAppError(modelError));
     return;
   }
+  dispatch(setActionResults("loadLabSettings", {loading: true}));
   adminModel.getLabSettings()
     .then((labSettings) => {
       dispatch({
@@ -121,7 +127,7 @@ export const loadLabSettings = () => (dispatch) => {
         lab: labSettings
       });
     }, (err) => {
-      dispatch(_actionResults('changeLabPassword', {error: err}));
+      dispatch(setActionResults('loadLabSettings', {error: err}));
     });
 };
 
@@ -130,11 +136,12 @@ export const changeLabPassword = (labPassword) => (dispatch) => {
     dispatch(showAppError(modelError));
     return;
   }
+  dispatch(setActionResults("changeLabPassword", {loading: true}));
   adminModel.changeLabPassword(labPassword)
     .then(() => {
-      dispatch(_actionResults('changeLabPassword', {success: true}));
+      dispatch(setActionResults('changeLabPassword', {success: true}));
     }, (err) => {
-      dispatch(_actionResults('changeLabPassword', {error: err}));
+      dispatch(setActionResults('changeLabPassword', {error: err}));
     });
 };
 

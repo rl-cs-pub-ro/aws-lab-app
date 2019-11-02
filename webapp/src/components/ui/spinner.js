@@ -12,16 +12,15 @@ export class LoadingSpinner extends LitElement {
     return [
       css`
         :host {
-          display: inline-flex;
+          display: none;
           flex-direction: row;
           align-items: center;
-          visibility: hidden;
           vertical-align: middle;
           margin-left: 10px;
         }
 
         :host([visible]) {
-          visibility: visible;
+          display: inline-flex;
         }
 
         .sk-circle {

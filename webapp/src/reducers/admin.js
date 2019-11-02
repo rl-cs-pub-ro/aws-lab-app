@@ -9,7 +9,17 @@ const INITIAL_STATE = {
   users: {},
   stats: {},
   lab: {},
-  actionStatus: {},
+  actionResults: {},
+};
+
+
+// returns the normalized results of an action
+let normalizeActionRes = (actionRes) => {
+  return {
+    loading: !!(actionRes && actionRes.loading),
+    success: !!(actionRes && actionRes.success),
+    error: (actionRes && actionRes.error ? actionRes.error : ''),
+  };
 };
 
 
@@ -19,8 +29,6 @@ const adminReducer = (state = INITIAL_STATE, action) => {
       return {
         ...state,
         authStatus: action.authStatus,
-        authError: action.authError,
-        authLoaded: true,
       };
     case ADMIN_UPDATE_LAB:
       return {
@@ -38,11 +46,11 @@ const adminReducer = (state = INITIAL_STATE, action) => {
         stats: action.data.stats,
       };
     case ADMIN_UPDATE_ACTION:
-      let actionStatus = {...state.actionStatus};
-      actionStatus[action.name] = action.status;
+      let actionResults = {...state.actionResults};
+      actionResults[action.name] = normalizeActionRes(action.results);
       return {
         ...state,
-        actionStatus
+        actionResults
       };
     default:
       return state;
