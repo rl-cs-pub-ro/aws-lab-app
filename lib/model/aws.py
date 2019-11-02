@@ -11,6 +11,7 @@ RESOURCE_TYPES = {
     "Vpcs": ("VpcId",),
     "Addresses": ("AllocationId",),
     "InternetGateways": ("InternetGatewayId",),
+    "NatGateways": ("NatGatewayId",),
     "Subnets": ("SubnetId",),
     "RouteTables": ("RouteTableId",),
     "SecurityGroups": ("GroupId",),
@@ -23,10 +24,13 @@ class AWSResourceCollection():
     def __init__(self, raw_resources=None):
         self._collection = {}
         if not raw_resources:
-            return
-        for res_type in RESOURCE_TYPES.keys():
-            self._collection[res_type] = normalize_resources(
-                res_type, raw_resources.get(res_type, []))
+            raw_resources = {}
+        for res_type in RESOURCE_TYPES:
+            res = raw_resources.get(res_type, [])
+            if res:
+                self._collection[res_type] = normalize_resources(res_type, res)
+            else:
+                self._collection[res_type] = []
 
     def get_size(self):
         """ Computes the size of the collection. """
@@ -43,7 +47,7 @@ class AWSResourceCollection():
             "unassigned": {},
         }
         # pprint.pprint(self._collection)
-        for res_type in RESOURCE_TYPES.keys():
+        for res_type in RESOURCE_TYPES:
             stats["totals"][res_type] = len(self._collection[res_type])
             for user in users:
                 stats["users"].setdefault(user, {})
@@ -53,16 +57,16 @@ class AWSResourceCollection():
                 not res.owner for res in self._collection[res_type])
         return stats
 
-    def get_filtered(self, filter_student=None, return_ids=False):
+    def get_filtered(self, filter_student=None):
         """ Returns filtered resource objects and / or IDs. """
-        filtered_resources = []
-        for res_type in RESOURCE_TYPES.keys():
-            for resource in self._collection[res_type]:
-                if filter_student and not resource.owner == student:
+        filtered_resources = {}
+        for res_type in RESOURCE_TYPES:
+            resources = []
+            for resource in self._collection.get(res_type, []):
+                if filter_student and not resource.owner == filter_student:
                     continue
-                filtered_resources.append(resource)
-        if return_ids:
-            return [res.id for res in filtered_resources]
+                resources.append(resource)
+            filtered_resources[res_type] = resources
         return filtered_resources
 
     def export(self):
@@ -76,10 +80,11 @@ class AWSResource():
     STUDENT_PATTERN = r'^(student[0-9]+)_.+'
     RESERVED_PREFIX = "admin_"
 
-    __slots__ = ("res_type", "id", "name", "owner", "reserved")
+    __slots__ = ("res_type", "id", "name", "owner", "reserved", "raw")
 
     def __init__(self, res_type, raw_data):
         self.res_type = res_type
+        self.raw = raw_data
         res_desc = RESOURCE_TYPES[res_type]
         self.id = raw_data.get(res_desc[0], "")
         self.name = self._extract_tag(raw_data, "Name")
@@ -98,7 +103,7 @@ class AWSResource():
 
     def export(self):
         return {"res_type": self.res_type, "id": self.id, "name": self.name,
-                "owner": self.owner, "reserved": self.reserved}
+                "owner": self.owner, "reserved": self.reserved, "raw": self.raw}
 
     def __repr__(self):
         return "AWSResource" + str(self.export())

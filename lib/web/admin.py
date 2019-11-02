@@ -4,6 +4,7 @@ from collections.abc import Mapping
 import logging
 import cherrypy
 import cherrypy_cors
+from botocore.exceptions import ClientError
 
 from ..model.student_users import StudentAccountException
 from ..aws.utils import get_aws_url
@@ -130,4 +131,29 @@ class AdminController():
             "users": users,
             "stats": self._store.resources.get_stats(usernames)
         }
+
+    @cherrypy.expose(alias="cleanAwsResources")
+    def clean_aws_resources(self):
+        """ Cleans up the AWS resources (for a specific user or for all). """
+        if self._check_preflight():
+            return
+        self._check_authorization()
+
+        if cherrypy.request.method != "POST":
+            raise cherrypy.HTTPError(400, "Invalid request (%s)" % cherrypy.request.method)
+        args = cherrypy.request.json
+        if not isinstance(args, Mapping):
+            raise cherrypy.HTTPError(400, "Invalid request data")
+        username = args.get("username", None)
+        errors = self._store.resources.clean_aws_resources(username)
+        if errors:
+            error_msgs = []
+            for err in errors:
+                if isinstance(err, ClientError):
+                    error_msgs.append(str(err.operation_name) + ": " +
+                                      err.response["Error"]["Message"])
+                else:
+                    error_msgs.append(str(err))
+            raise cherrypy.HTTPError(500, "\n".join(error_msgs))
+        return {"success": True}
 

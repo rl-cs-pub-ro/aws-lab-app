@@ -42,7 +42,7 @@ class AwsWorkerThread(Thread):
             except queue.Empty:
                 continue
             except Exception as exc:
-                log.error(exc)
+                log.exception("Worker received an exception")
                 if cur_task and cur_task.retry and cur_task.retry < cur_task.retry:
                     # retry task
                     cur_try += 1

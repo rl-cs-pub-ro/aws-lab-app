@@ -1,5 +1,6 @@
 """ Implements the AWS processing task classes. """
 
+import logging
 import string
 import random
 import time
@@ -8,6 +9,9 @@ from concurrent.futures import Future
 
 from botocore.exceptions import ClientError
 from ..model.aws import normalize_resources
+from .utils import AWSSafeExec
+
+log = logging.getLogger(__name__)
 
 
 class AwsTask():
@@ -84,6 +88,7 @@ class RetrieveEC2Resources(AwsTask):
             "Vpcs": ec2.describe_vpcs,
             "Addresses": ec2.describe_addresses,
             "InternetGateways": ec2.describe_internet_gateways,
+            "NatGateways": ec2.describe_nat_gateways,
             "Subnets": ec2.describe_subnets,
             "RouteTables": ec2.describe_route_tables,
             "SecurityGroups": ec2.describe_security_groups,
@@ -98,26 +103,103 @@ class CleanupUserResourcesTask(AwsTask):
     """ Deletes AWS user resources. """
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.resource_map = kwargs.pop("resourceMap")
+        self.resource_map = kwargs.pop("resource_map")
+        self.dryrun = kwargs.pop("dryrun", False)
 
     def execute(self, aws):
         ec2 = aws.client("ec2")
+
+        def delete_instances(resources):
+            ids = [resource.id for resource in resources]
+            safexc = AWSSafeExec("delete_instances", log=log)
+            for inst_id in ids:
+                with safexc:
+                    ec2.terminate_instances(InstanceIds=[inst_id], DryRun=self.dryrun)
+            return safexc
+
+        def delete_key_pairs(resources):
+            safexc = AWSSafeExec("delete_key_pairs", log=log)
+            for resource in resources:
+                with safexc:
+                    ec2.delete_key_pair(KeyName=resource.id, DryRun=self.dryrun)
+            return safexc
+
+        def delete_vpcs(resources):
+            safexc = AWSSafeExec("delete_vpcs", log=log)
+            for resource in resources:
+                with safexc:
+                    ec2.delete_vpc(VpcId=resource.id, DryRun=self.dryrun)
+            return safexc
+
+        def delete_addresses(resources):
+            safexc = AWSSafeExec("delete_addresses", log=log)
+            for resource in resources:
+                with safexc:
+                    ec2.release_address(AllocationId=resource.id, DryRun=self.dryrun)
+            return safexc
+
+        def delete_inet_gateways(resources):
+            safexc = AWSSafeExec("delete_inet_gateways", log=log)
+            for resource in resources:
+                for attach in resource.raw.get("Attachments", []):
+                    with safexc:
+                        ec2.detach_internet_gateway(
+                            InternetGatewayId=resource.id, VpcId=attach["VpcId"],
+                            DryRun=self.dryrun)
+                with safexc:
+                    ec2.delete_internet_gateway(InternetGatewayId=resource.id, DryRun=self.dryrun)
+            return safexc
+
+        def delete_nat_gateways(resources):
+            safexc = AWSSafeExec("delete_nat_gateways", log=log)
+            for resource in resources:
+                with safexc:
+                    ec2.delete_nat_gateway(NatGatewayId=resource.id, DryRun=self.dryrun)
+            return safexc
+
+        def delete_subnets(resources):
+            safexc = AWSSafeExec("delete_subnets", log=log)
+            for resource in resources:
+                with safexc:
+                    ec2.delete_subnet(SubnetId=resource.id, DryRun=self.dryrun)
+            return safexc
+
+        def delete_route_tables(resources):
+            safexc = AWSSafeExec("delete_route_tables", log=log)
+            for resource in resources:
+                with safexc:
+                    ec2.delete_route_table(RouteTableId=resource.id, DryRun=self.dryrun)
+            return safexc
+
+        def delete_security_groups(resources):
+            safexc = AWSSafeExec("delete_security_groups", log=log)
+            for resource in resources:
+                with safexc:
+                    ec2.delete_security_group(GroupId=resource.id, DryRun=self.dryrun)
+            return safexc
+
+        ORDER = ["Instances", "KeyPairs", "RouteTables", "SecurityGroups", "Subnets", "Addresses",
+                 "InternetGateways", "NatGateways", "Vpcs", ]
         DELETE_FUNCS = {
-            "Instances": ec2.terminate_instance,
-            "KeyPairs": ec2.delete_key_pair,
-            "Vpcs": ec2.delete_vpc,
-            "Addresses": ec2.release_address,
-            "InternetGateways": ec2.delete_internet_gateway,
-            "Subnets": ec2.delete_subnet,
-            "RouteTables": ec2.delete_route_table,
-            "SecurityGroups": ec2.delete_security_group,
+            "Instances": delete_instances,
+            "KeyPairs": delete_key_pairs,
+            "Vpcs": delete_vpcs,
+            "Addresses": delete_addresses,
+            "InternetGateways": delete_inet_gateways,
+            "NatGateways": delete_nat_gateways,
+            "Subnets": delete_subnets,
+            "RouteTables": delete_route_tables,
+            "SecurityGroups": delete_security_groups,
         }
-        for res_type, resource_ids in self.resource_map:
-            FUNC = DELETE_FUNCS.get(res_type)
-            FUNC(resource_ids)
-        
-        # instances = filter_resources(normalize_resources(
-        #    "Reservations", ec2.describe_instances()))
-        # for instance in instances["Instances"]:
+        all_errors = []
+        for res_type in ORDER:
+            FUNC = DELETE_FUNCS[res_type]
+            resources = self.resource_map.get(res_type, None)
+            if resources:
+                log.info("Deleting %s: %s", res_type, str(resources))
+                safexc = FUNC(resources)
+                if safexc.errors:
+                    all_errors.extend(safexc.errors)
+        return all_errors
 
 

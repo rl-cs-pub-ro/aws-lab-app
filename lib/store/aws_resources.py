@@ -6,7 +6,8 @@ import logging
 from threading import Lock
 
 from ..aws.tasks import (
-    RetrieveStudentUsers, ChangeUserPassword, RetrieveEC2Resources
+    RetrieveStudentUsers, ChangeUserPassword, RetrieveEC2Resources,
+    CleanupUserResourcesTask
 )
 from lib.model.aws import AWSResource, AWSResourceCollection
 
@@ -46,6 +47,14 @@ class AwsResourcesStore():
             log.info("Refreshed AWS resources (%s)", collect.get_size())
             with self._lock:
                 self._collection = collect
+
+    def clean_aws_resources(self, username):
+        """ Runs the AWS cleanup task. """
+        self.refresh_resources()
+        resources = self._collection.get_filtered(filter_student=username)
+        task = CleanupUserResourcesTask(resource_map=resources, dryrun=True)
+        future = self._thread_pool.queue_task(task)
+        return future.result()
 
     def _fetch_resources(self):
         """ Executes the resources polling task and returns the newly discovered resources. """

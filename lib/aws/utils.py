@@ -23,3 +23,22 @@ class AwsJsonEncoder(json.JSONEncoder):
         return super().default(obj)
 
 
+class AWSSafeExec(object):
+    """ Context manager for safely executing AWS API routines (just logs / registers the errors
+        encountered). """
+    def __init__(self, name, log=None):
+        self.errors = []
+        self.name = name
+        self.log = log
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc, value, traceback):
+        if not exc:
+            return True
+        if self.log:
+            self.log.warning(self.name + ": " + str(value))
+        self.errors.append(value)
+        return True
+
