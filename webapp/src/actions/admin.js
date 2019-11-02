@@ -145,4 +145,18 @@ export const changeLabPassword = (labPassword) => (dispatch) => {
     });
 };
 
+export const cleanAwsResources = (username) => (dispatch) => {
+  if (!adminModel) {
+    dispatch(showAppError(modelError));
+    return;
+  }
+  dispatch(setActionResults("cleanAwsResources", {loading: true}));
+  adminModel.cleanAwsResources(username)
+    .then(() => {
+      dispatch(setActionResults('cleanAwsResources', {success: true}));
+    }, (err) => {
+      dispatch(setActionResults('cleanAwsResources', {error: err}));
+    });
+};
+
 

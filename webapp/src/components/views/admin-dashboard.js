@@ -8,7 +8,7 @@ import '@polymer/iron-icons/iron-icons.js';
 import { store } from '../../store.js';
 import {
   setActionResults, loadStudentUsers, loadLabSettings, changeLabPassword,
-  startRefresh, stopRefresh, 
+  startRefresh, stopRefresh, cleanAwsResources,
 } from '../../actions/admin.js';
 
 import { SharedStyles } from '../styles/shared-styles.js';
@@ -23,6 +23,7 @@ export class RLAwsAdminDashboard extends connect(store)(PageViewElement) {
       _labPassword: { type: String },
       _loadAwsRes: { type: Object },
       _changePassRes: { type: Object },
+      _cleanupRes: { type: Object },
     };
   }
 
@@ -117,8 +118,11 @@ export class RLAwsAdminDashboard extends connect(store)(PageViewElement) {
               .results="${this._changePassRes}"></action-results>
         </form>
         <p>
-          AWS Resources: <button class="reset" title="Clean up and unassign all users">
-            <iron-icon icon="delete-forever"></iron-icon> Clean all users</button>
+        AWS Resources: <button class="reset" title="Clean up and unassign all users"
+                                             @click="${this._resetAwsClick}">
+          <iron-icon icon="delete-forever"></iron-icon> Clean all users</button>
+          <action-results success-msg="All resources cleaned up (hopefully)!"
+              .results="${this._cleanupRes}"></action-results>
         </p>
       </div>
     </section>`;
@@ -132,6 +136,12 @@ export class RLAwsAdminDashboard extends connect(store)(PageViewElement) {
     }, 50);
   }
 
+  _resetAwsClick(event) {
+    event.preventDefault();
+    if (confirm("WARNING: all AWS resources will be DELETED! Are you sure?"))
+      store.dispatch(cleanAwsResources(null));
+  }
+
   updated(changedProps) {
     if (changedProps.has('active')) {
       if (this.active) {
@@ -139,6 +149,7 @@ export class RLAwsAdminDashboard extends connect(store)(PageViewElement) {
         store.dispatch(startRefresh());
       } else {
         store.dispatch(stopRefresh());
+        store.dispatch(setActionResults("cleanAwsResources", null));
         store.dispatch(setActionResults("changeLabPassword", null));
       }
     }
@@ -149,6 +160,7 @@ export class RLAwsAdminDashboard extends connect(store)(PageViewElement) {
     this._labPassword = state.admin.lab ? state.admin.lab.password : "";
     this._stats = state.admin.stats.totals;
     this._loadAwsRes = state.admin.actionResults.fetchAwsData;
+    this._cleanupRes = state.admin.actionResults.cleanAwsResources;
     this._changePassRes = state.admin.actionResults.changeLabPassword;
   }
 }

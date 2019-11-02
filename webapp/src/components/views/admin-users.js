@@ -8,7 +8,7 @@ import '@polymer/iron-icons/iron-icons.js';
 
 // This element is connected to the Redux store.
 import { store } from '../../store.js';
-import { setActionResults, startRefresh, stopRefresh, } from '../../actions/admin.js';
+import { setActionResults, startRefresh, stopRefresh, cleanAwsResources } from '../../actions/admin.js';
 
 import { SharedStyles } from '../styles/shared-styles.js';
 import { ActionResultsElem } from '../ui/actionResults.js';
@@ -22,6 +22,7 @@ export class RLAwsAdminUsers extends connect(store)(PageViewElement) {
       _userStats: { type: Object },
       _openUser: { type: String },
       _loadAwsRes: { type: Object },
+      _userCleanupRes: { type: Object },
     };
   }
 
@@ -177,10 +178,13 @@ export class RLAwsAdminUsers extends connect(store)(PageViewElement) {
                   `)}
                   </div>
                 <div class="buttons">
-                  <button title="Clean up all user's resources">
+                  <button @click="${(event) => this._resetAwsUserClick(username, event)}"
+                      title="Clean up all user's resources">
                     <iron-icon icon="delete-forever"></iron-icon> Clean all</button>
                   <button title="Clean up and unassign the user">
                     <iron-icon icon="cancel"></iron-icon> Unassign</button>
+                  <action-results success-msg="Action completed successfully!"
+                    .results="${this._userCleanupRes}"></action-results>
                 </div>
               </div>
             </div>
@@ -257,6 +261,13 @@ export class RLAwsAdminUsers extends connect(store)(PageViewElement) {
     this._openUser = username;
   }
 
+  _resetAwsUserClick(username, event) {
+    event.preventDefault();
+    if (confirm("WARNING: the AWS resources will be DELETED for '" + username +
+        "'! Are you sure?"))
+      store.dispatch(cleanAwsResources(username));
+  }
+
   updated(changedProps) {
     if (changedProps.has('active')) {
       if (this.active) {
@@ -264,6 +275,7 @@ export class RLAwsAdminUsers extends connect(store)(PageViewElement) {
         store.dispatch(startRefresh());
       } else {
         store.dispatch(stopRefresh());
+        store.dispatch(setActionResults("cleanAwsResources", null));
       }
     }
   }
@@ -273,6 +285,7 @@ export class RLAwsAdminUsers extends connect(store)(PageViewElement) {
     this._users = state.admin.users;
     this._userStats = state.admin.stats.users;
     this._loadAwsRes = state.admin.actionResults.fetchAwsData;
+    this._userCleanupRes = state.admin.actionResults.cleanAwsResources;
   }
 }
 
