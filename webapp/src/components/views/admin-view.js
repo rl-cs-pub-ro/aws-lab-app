@@ -16,9 +16,8 @@ export class RLAwsAdminView extends connect(store)(PageViewElement) {
   static get properties() {
     return {
       _authenticated: { type: Boolean },
-      _authFailed: { type: String },
       _subpage: { type: String },
-      _authLoading: { type: Boolean },
+      _authRes: { type: Object },
     };
   }
 
@@ -48,8 +47,8 @@ export class RLAwsAdminView extends connect(store)(PageViewElement) {
     if (!this._authenticated) {
       return html`<section>
         <h2>Administrator Panel</h2>
-        <login-form @form-submitted="${this._formSubmitted}" auth-error="${this._authFailed}"
-            ?loading="${this._authLoading}">
+        <login-form @form-submitted="${this._formSubmitted}"
+            .results="${this._authRes}">
           <p style="font-weight: bold;">STAHP! Only authorized personnel can proceed!</p>
         </login-form>
         <br>
@@ -63,14 +62,17 @@ export class RLAwsAdminView extends connect(store)(PageViewElement) {
     `;
   }
 
+  constructor() {
+    super();
+    this._authRes = {};
+  }
+
   firstUpdated() {
     this._authLoading = true;
     store.dispatch(loadAdminCredentials());
   }
 
   _formSubmitted(event) {
-    this._authLoading = true;
-    this._authFailed = '';
     store.dispatch(loginAdmin(event.detail.username, event.detail.password));
   }
 
@@ -79,8 +81,7 @@ export class RLAwsAdminView extends connect(store)(PageViewElement) {
     let subpageObj = state.app.page.subpage;
     this._subpage = subpageObj ? subpageObj.name : "";
     this._authenticated = state.admin.authStatus;
-    this._authFailed = state.admin.authError;
-    this._authLoading = !state.admin.authLoaded;
+    this._authRes = state.admin.actionResults.auth;
   }
 }
 

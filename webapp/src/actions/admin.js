@@ -40,8 +40,10 @@ export const loadAdminCredentials = () => (dispatch) => {
   adminModel.getStoredCredentials().then((credentials) => {
     if (credentials) {
       dispatch(_updateLogin(true));
+      dispatch(setActionResults("auth", null));
     } else {
       dispatch(_updateLogin(false));
+      dispatch(setActionResults("auth", null));
     }
   }, (err) => {
     dispatch(_updateLogin(false));
@@ -61,6 +63,7 @@ export const loginAdmin = (username, password) => (dispatch) => {
   adminModel.login(username, password)
     .then((result) => {
       dispatch(_updateLogin(true));
+      dispatch(setActionResults("auth", null));
     }, (err) => {
       dispatch(_updateLogin(false));
       dispatch(setActionResults("auth", {error: err}));

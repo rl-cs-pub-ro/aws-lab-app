@@ -1,14 +1,14 @@
 import { LitElement, html, css } from 'lit-element';
 
 import { SharedStyles } from '../styles/shared-styles.js';
-import { LoadingSpinner } from "../ui/spinner.js";
+import { ActionResultsElem } from "../ui/actionResults.js";
 
 
 export class LoginForm extends LitElement {
   static get properties() {
     return {
       loading: { type: Boolean, attribute: "loading" },
-      authError: { type: String, attribute: 'auth-error' }
+      results: { type: Object }
     };
   }
 
@@ -23,6 +23,7 @@ export class LoginForm extends LitElement {
         form .line {
           display: flex;
           flex-direction: row;
+          flex-wrap: wrap;
           align-items: center;
           margin: 4px;
         }
@@ -37,16 +38,9 @@ export class LoginForm extends LitElement {
           padding: 3px 10px;
         }
 
-        .message {
-          visibility: hidden; opacity: 0;
-          padding: 10px 0;
-          height: 0; overflow: hidden;
-          transition: visibility 0s, opacity 0.5s linear;
-        }
-        .message[visible] {
-          visibility: visible; opacity: 1;
-          height: auto; overflow: initial;
-          display: block;
+        form .line action-results[visible] {
+          width: 100%;
+          flex-grow: 1;
         }
       `
     ];
@@ -67,10 +61,7 @@ export class LoginForm extends LitElement {
         <div class="line">
           <span class="label"></span>
           <button type="submit">Login</button>
-          <loading-spinner ?visible="${this.loading}"></loading-spinner>
-        </div>
-        <div class="error message" ?visible="${this.authError}">
-          Authentication failed: ${this.authError}
+          <action-results .results="${this.results}"></action-results>
         </div>
       </form>
     `;
