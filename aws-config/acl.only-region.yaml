@@ -1,0 +1,19 @@
+Version: "2012-10-17"
+Statement:
+  # Restrict all EC2 actions to a single region
+  - Sid: "EnforceRegion"
+    Effect: "Deny"
+    Action: "ec2:*"
+    Resource: "*"
+    Condition: {"StringNotEquals": {"ec2:Region": "eu-west-1"}}
+
+  - Sid: "AllowAllEC2"
+    Effect: "Allow"
+    Action: ["ec2:*"]
+    Resource: "*"
+
+  - Sid: "AllowCloudWatch"
+    Effect: "Allow"
+    Action: "autoscaling:*"
+    Resource: "*"
+

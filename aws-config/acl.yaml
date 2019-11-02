@@ -1,0 +1,18 @@
+Version: "2012-10-17"
+Statement:
+  # Restrict all EC2 actions to a single region
+  - Sid: "EnforceRegion"
+    Effect: "Deny"
+    Action: "ec2:*"
+    Resource: "*"
+    Condition: {"StringNotEquals": {"ec2:Region": "eu-central-1"}}
+
+  - Sid: "FirstStatement"
+    Effect: "Allow"
+    Action: ["iam:ChangePassword"]
+    Resource: "*"
+  - Sid: "SecondStatement"
+    Effect: "Allow"
+    Action: "s3:ListAllMyBuckets"
+    Resource: "*"
+

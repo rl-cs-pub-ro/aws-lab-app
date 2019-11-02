@@ -26,3 +26,8 @@ venv_upgrade: .venv/.created
 clean_venv:
 	rm -rf .venv
 
+policies:
+	"$(PYTHON)" convert_policy.py aws-config/acl.only-region.yaml
+	"$(PYTHON)" convert_policy.py aws-config/acl.yaml
+
+.PHONY: policies
