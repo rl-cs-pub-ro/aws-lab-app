@@ -33,6 +33,7 @@ htmlcov/
 venv
 
 # secrets & data
+config.local.mk
 config.yaml
 secrets.yaml
 data/

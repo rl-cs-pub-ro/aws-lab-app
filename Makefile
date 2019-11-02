@@ -4,6 +4,8 @@
 PYTHON = .venv/bin/python3
 PIP = "$(PYTHON)" -mpip
 
+-include config.local.mk
+
 run: .venv/.installed
 	"$(PYTHON)" main.py
 
@@ -30,4 +32,13 @@ policies:
 	"$(PYTHON)" convert_policy.py aws-config/acl.only-region.yaml
 	"$(PYTHON)" convert_policy.py aws-config/acl.yaml
 
-.PHONY: policies
+DEPLOY_EXCLUDE = "/webapp/" "/aws-config/" ".*" "/secrets.yaml" "/config.yaml" "/data"
+DEPLOY_EXCLUDE_ARG = $(patsubst %,--exclude %,$(DEPLOY_EXCLUDE))
+deploy:
+	@cd webapp/ && polymer build
+	rsync -ah $(DEPLOY_EXCLUDE_ARG) -e "ssh $(SERVER_SSH_ARGS)" ./ $(SERVER_ADDRESS)
+	rsync -ah -e "ssh $(SERVER_SSH_ARGS)" ./webapp/build/es6-bundled/ $(SERVER_ADDRESS)/webapp-dist/
+
+.PHONY: policies deploy
+
+

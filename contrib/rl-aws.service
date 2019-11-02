@@ -1,0 +1,15 @@
+[Unit]
+Description=RL-AWS WebApp
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/ubuntu/rl-aws/
+ExecStart=/home/ubuntu/rl-aws/.venv/bin/python3 main.py
+User=ubuntu
+Group=ubuntu
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+
