@@ -5,7 +5,7 @@ import os.path
 import logging
 from threading import Lock
 
-from lib.aws.tasks import RetrieveStudentUsers, ChangeUserPassword
+from lib.aws.tasks import RetrieveStudentUsers, ChangeUserPassword, RemoveUserProfile
 from lib.model.student_users import StudentAccountCollection
 from ._file import FileStore
 
@@ -91,8 +91,21 @@ class StudentAccountsStore(FileStore):
     def reset_user(self, username):
         """ Resets an user account. """
         with self._lock:
+            # queue the task to reset the user's profile, but don't wait for it
+            task = RemoveUserProfile(username=username, retry=3)
+            self._thread_pool.queue_task(task)
             self._collection.reset_user(username)
             self._save()
+
+    def reset_all_users(self):
+        """ Resets all user accounts. """
+        with self._lock:
+            for username in self._collection.get_users():
+                # queue the task to reset the user's profile, but don't wait for it
+                task = RemoveUserProfile(username=username, retry=3)
+                self._thread_pool.queue_task(task)
+                self._collection.reset_user(username)
+                self._save()
 
     def _fetch_aws_users(self):
         """ Fetches the AWS users. """

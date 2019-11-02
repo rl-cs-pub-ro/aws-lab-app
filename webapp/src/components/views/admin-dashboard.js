@@ -24,6 +24,7 @@ export class RLAwsAdminDashboard extends connect(store)(PageViewElement) {
       _loadAwsRes: { type: Object },
       _changePassRes: { type: Object },
       _cleanupRes: { type: Object },
+      _deallocateRes: { type: Object },
     };
   }
 
@@ -118,7 +119,15 @@ export class RLAwsAdminDashboard extends connect(store)(PageViewElement) {
               .results="${this._changePassRes}"></action-results>
         </form>
         <p>
-        AWS Resources: <button class="reset" title="Clean up and unassign all users"
+        AWS Users: <button class="reset"
+                           title="Deallocate all users (delete their login profiles)"
+                           @click="${this._deallocateUserClick}">
+          <iron-icon icon="cancel"></iron-icon> Deallocate all</button>
+          <action-results success-msg="All users deallocated!"
+              .results="${this._deallocateRes}"></action-results>
+        </p>
+        <p>
+        AWS Resources: <button class="reset" title="Clean up all AWS resources"
                                              @click="${this._resetAwsClick}">
           <iron-icon icon="delete-forever"></iron-icon> Clean all users</button>
           <action-results success-msg="All resources cleaned up (hopefully)!"
@@ -139,7 +148,13 @@ export class RLAwsAdminDashboard extends connect(store)(PageViewElement) {
   _resetAwsClick(event) {
     event.preventDefault();
     if (confirm("WARNING: all AWS resources will be DELETED! Are you sure?"))
-      store.dispatch(cleanAwsResources(null));
+      store.dispatch(cleanAwsResources(null, true));
+  }
+
+  _deallocateUserClick(event) {
+    event.preventDefault();
+    if (confirm("WARNING: ALL student users will be unable to login until re-allocation! Are you sure?"))
+      store.dispatch(cleanAwsResources(null, true));
   }
 
   updated(changedProps) {
@@ -150,6 +165,7 @@ export class RLAwsAdminDashboard extends connect(store)(PageViewElement) {
       } else {
         store.dispatch(stopRefresh());
         store.dispatch(setActionResults("cleanAwsResources", null));
+        store.dispatch(setActionResults("deallocateUser", null));
         store.dispatch(setActionResults("changeLabPassword", null));
       }
     }
@@ -161,6 +177,7 @@ export class RLAwsAdminDashboard extends connect(store)(PageViewElement) {
     this._stats = state.admin.stats.totals;
     this._loadAwsRes = state.admin.actionResults.fetchAwsData;
     this._cleanupRes = state.admin.actionResults.cleanAwsResources;
+    this._deallocateRes = state.admin.actionResults.deallocateUser;
     this._changePassRes = state.admin.actionResults.changeLabPassword;
   }
 }

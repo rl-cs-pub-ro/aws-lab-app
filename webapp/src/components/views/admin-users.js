@@ -8,7 +8,10 @@ import '@polymer/iron-icons/iron-icons.js';
 
 // This element is connected to the Redux store.
 import { store } from '../../store.js';
-import { setActionResults, startRefresh, stopRefresh, cleanAwsResources } from '../../actions/admin.js';
+import {
+  setActionResults, startRefresh, stopRefresh, cleanAwsResources,
+  deallocateUser,
+} from '../../actions/admin.js';
 
 import { SharedStyles } from '../styles/shared-styles.js';
 import { ActionResultsElem } from '../ui/actionResults.js';
@@ -23,6 +26,7 @@ export class RLAwsAdminUsers extends connect(store)(PageViewElement) {
       _openUser: { type: String },
       _loadAwsRes: { type: Object },
       _userCleanupRes: { type: Object },
+      _userDeallocRes: { type: Object },
     };
   }
 
@@ -181,10 +185,13 @@ export class RLAwsAdminUsers extends connect(store)(PageViewElement) {
                   <button @click="${(event) => this._resetAwsUserClick(username, event)}"
                       title="Clean up all user's resources">
                     <iron-icon icon="delete-forever"></iron-icon> Clean all</button>
-                  <button title="Clean up and unassign the user">
+                  <button title="Deallocate the user"
+                      @click="${(event) => this._deallocateUserClick(username, event)}">
                     <iron-icon icon="cancel"></iron-icon> Unassign</button>
-                  <action-results success-msg="Action completed successfully!"
+                  <action-results success-msg="Cleanup completed successfully!"
                     .results="${this._userCleanupRes}"></action-results>
+                  <action-results success-msg="User login profile deleted successfully!"
+                    .results="${this._userDeallocRes}"></action-results>
                 </div>
               </div>
             </div>
@@ -253,6 +260,7 @@ export class RLAwsAdminUsers extends connect(store)(PageViewElement) {
     
     if (!openable) return;
     event.preventDefault();
+    store.dispatch(setActionResults("deallocateUser", null));
     store.dispatch(setActionResults("cleanAwsResources", null));
     if (this._openUser == username) {
       this._openUser = ''; // close it
@@ -265,7 +273,14 @@ export class RLAwsAdminUsers extends connect(store)(PageViewElement) {
     event.preventDefault();
     if (confirm("WARNING: the AWS resources will be DELETED for '" + username +
         "'! Are you sure?"))
-      store.dispatch(cleanAwsResources(username));
+      store.dispatch(cleanAwsResources(username, false));
+  }
+
+  _deallocateUserClick(username, event) {
+    event.preventDefault();
+    if (confirm("WARNING: the user '" + username +
+        "' will be deallocated (but resources need to be cleaned up separately)! Are you sure?"))
+      store.dispatch(deallocateUser(username, false));
   }
 
   updated(changedProps) {
@@ -275,6 +290,7 @@ export class RLAwsAdminUsers extends connect(store)(PageViewElement) {
         store.dispatch(startRefresh());
       } else {
         store.dispatch(stopRefresh());
+        store.dispatch(setActionResults("deallocateUser", null));
         store.dispatch(setActionResults("cleanAwsResources", null));
       }
     }
@@ -286,6 +302,7 @@ export class RLAwsAdminUsers extends connect(store)(PageViewElement) {
     this._userStats = state.admin.stats.users;
     this._loadAwsRes = state.admin.actionResults.fetchAwsData;
     this._userCleanupRes = state.admin.actionResults.cleanAwsResources;
+    this._userDeallocRes = state.admin.actionResults.deallocateUser;
   }
 }
 

@@ -42,7 +42,7 @@ export class ActionResultsElem extends LitElement {
         }
         .error.message {
           max-height: 10em;
-          overflow: hidden;
+          overflow-y: auto;
         }
       `
     ];

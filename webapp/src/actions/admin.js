@@ -145,17 +145,31 @@ export const changeLabPassword = (labPassword) => (dispatch) => {
     });
 };
 
-export const cleanAwsResources = (username) => (dispatch) => {
+export const cleanAwsResources = (username, all) => (dispatch) => {
   if (!adminModel) {
     dispatch(showAppError(modelError));
     return;
   }
   dispatch(setActionResults("cleanAwsResources", {loading: true}));
-  adminModel.cleanAwsResources(username)
+  adminModel.cleanAwsResources(username, all)
     .then(() => {
       dispatch(setActionResults('cleanAwsResources', {success: true}));
     }, (err) => {
       dispatch(setActionResults('cleanAwsResources', {error: err}));
+    });
+};
+
+export const deallocateUser = (username, all) => (dispatch) => {
+  if (!adminModel) {
+    dispatch(showAppError(modelError));
+    return;
+  }
+  dispatch(setActionResults("deallocateUser", {loading: true}));
+  adminModel.deallocateUser(username, all)
+    .then(() => {
+      dispatch(setActionResults('deallocateUser', {success: true}));
+    }, (err) => {
+      dispatch(setActionResults('deallocateUser', {error: err}));
     });
 };
 

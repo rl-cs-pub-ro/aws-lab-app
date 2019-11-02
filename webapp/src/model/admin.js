@@ -79,9 +79,21 @@ export class RLAwsAdmin extends RLAwsAPI {
       });
   }
 
-  cleanAwsResources(username) {
+  deallocateUser(username, all) {
+    let reqArgs = all ? {all: true} : {username: username};
+    return this.post("/admin/deallocateUser")
+      .send(reqArgs)
+      .then((resp) => {
+        return resp.body;
+      }, (err) => {
+        throw this._errorMessage(err);
+      });
+  }
+
+  cleanAwsResources(username, all) {
+    let reqArgs = all ? {all: true} : {username: username};
     return this.post("/admin/cleanAwsResources")
-      .send({ username: username })
+      .send(reqArgs)
       .then((resp) => {
         return resp.body;
       }, (err) => {

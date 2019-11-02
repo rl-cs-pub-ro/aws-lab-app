@@ -132,6 +132,26 @@ class AdminController():
             "stats": self._store.resources.get_stats(usernames)
         }
 
+    @cherrypy.expose(alias="deallocateUser")
+    def deallocate_user(self):
+        """ Deallocates a specific user or all of them. """
+        if self._check_preflight():
+            return
+        self._check_authorization()
+
+        if cherrypy.request.method != "POST":
+            raise cherrypy.HTTPError(400, "Invalid request (%s)" % cherrypy.request.method)
+        args = cherrypy.request.json
+        if not isinstance(args, Mapping):
+            raise cherrypy.HTTPError(400, "Invalid request data")
+        all = args.get("all_users", False)
+        username = args.get("username", None)
+        if all:
+            self._store.users.reset_all_users()
+        else:
+            self._store.users.reset_user(username)
+        return {"success": True}
+
     @cherrypy.expose(alias="cleanAwsResources")
     def clean_aws_resources(self):
         """ Cleans up the AWS resources (for a specific user or for all). """
@@ -144,7 +164,13 @@ class AdminController():
         args = cherrypy.request.json
         if not isinstance(args, Mapping):
             raise cherrypy.HTTPError(400, "Invalid request data")
+        all = args.get("all", None)
         username = args.get("username", None)
+        if not all and not username:
+            raise cherrypy.HTTPError(400, "Invalid request data (empty username given)")
+        if all:
+            username = None
+
         errors = self._store.resources.clean_aws_resources(username)
         if errors:
             error_msgs = []

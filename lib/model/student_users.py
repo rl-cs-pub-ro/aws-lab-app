@@ -42,6 +42,10 @@ class StudentAccountCollection():
                 raise StudentAccountException("User '%s' not found" % username)
         return self._users[username]
 
+    def get_users(self):
+        """ Enumerates all usernames. """
+        return self._users.keys()
+
     def allocate_user(self):
         """ Allocates a new user and returns its data. Raises an exception if no
         empty accounts were found. """

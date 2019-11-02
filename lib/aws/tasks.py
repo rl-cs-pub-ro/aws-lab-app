@@ -74,6 +74,24 @@ class ChangeUserPassword(AwsTask):
         return True
 
 
+class RemoveUserProfile(AwsTask):
+    """ Removes an user's login profile, preventing further authentication """
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.username = kwargs.pop("username")
+
+    def execute(self, aws):
+        iam = aws.client("iam")
+        try:
+            iam.delete_login_profile(UserName=self.username)
+        except ClientError as ex:
+            if ex.response['Error']['Code'] == 'NoSuchEntity':
+                pass  # it's okay, profile doesn't exist
+            else:
+                raise ex
+        return True
+
+
 class RetrieveEC2Resources(AwsTask):
     """ Retrieves the collection of all relevant resources. """
 
@@ -154,7 +172,8 @@ class CleanupUserResourcesTask(AwsTask):
             safexc = AWSSafeExec("delete_nat_gateways", log=log)
             for resource in resources:
                 with safexc:
-                    ec2.delete_nat_gateway(NatGatewayId=resource.id, DryRun=self.dryrun)
+                    if not self.dryrun:
+                        ec2.delete_nat_gateway(NatGatewayId=resource.id)
             return safexc
 
         def delete_subnets(resources):
