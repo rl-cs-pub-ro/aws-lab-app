@@ -13,5 +13,5 @@ if __name__ == '__main__':
 
     with open(filename, 'r') as yaml_in, open(destination, "w") as json_out:
         yaml_object = yaml.safe_load(yaml_in)
-        json.dump(yaml_object, json_out)
+        json.dump(yaml_object, json_out, indent=2, sort_keys=True)
 

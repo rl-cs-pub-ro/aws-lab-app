@@ -7,6 +7,13 @@ Statement:
     Resource: "*"
     Condition: {"StringNotEquals": {"ec2:Region": "eu-west-1"}}
 
+  # Restrict access on admin_* resources
+  - Sid: "DenyAdminResources"
+    Effect: "Deny"
+    Action: "ec2:*"
+    Resource: "*"
+    Condition: {"StringLike": {"aws:ResourceTag/Name": "admin_*"}}
+
   - Sid: "AllowAllEC2"
     Effect: "Allow"
     Action: ["ec2:*"]
