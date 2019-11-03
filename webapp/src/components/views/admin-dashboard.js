@@ -8,7 +8,7 @@ import '@polymer/iron-icons/iron-icons.js';
 import { store } from '../../store.js';
 import {
   setActionResults, loadStudentUsers, loadLabSettings, changeLabPassword,
-  startRefresh, stopRefresh, cleanAwsResources,
+  startRefresh, stopRefresh, cleanAwsResources, deallocateUser,
 } from '../../actions/admin.js';
 
 import { SharedStyles } from '../styles/shared-styles.js';

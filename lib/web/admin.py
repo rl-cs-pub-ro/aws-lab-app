@@ -144,7 +144,7 @@ class AdminController():
         args = cherrypy.request.json
         if not isinstance(args, Mapping):
             raise cherrypy.HTTPError(400, "Invalid request data")
-        all = args.get("all_users", False)
+        all = args.get("all", False)
         username = args.get("username", None)
         if all:
             self._store.users.reset_all_users()
