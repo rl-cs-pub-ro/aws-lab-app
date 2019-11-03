@@ -154,7 +154,7 @@ export class RLAwsAdminDashboard extends connect(store)(PageViewElement) {
   _deallocateUserClick(event) {
     event.preventDefault();
     if (confirm("WARNING: ALL student users will be unable to login until re-allocation! Are you sure?"))
-      store.dispatch(cleanAwsResources(null, true));
+      store.dispatch(deallocateUser(null, true));
   }
 
   updated(changedProps) {
