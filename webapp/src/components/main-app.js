@@ -42,7 +42,10 @@ export class RLAwsApp extends connect(store)(LitElement) {
         header {
           display: block;
           flex-direction: row;
-          text-align: center;
+          text-align: left;
+          max-width: 600px;
+          margin: 0 auto;
+          padding: 0 20px;
         }
 
         h1 {
@@ -52,6 +55,17 @@ export class RLAwsApp extends connect(store)(LitElement) {
         .logo {
           height: 50px;
           vertical-align: top;
+        }
+
+        .sponsor {
+          display: inline-block;
+          float: right;
+          margin-left: 55px;
+          margin-top: 10px;
+          font-size: 11px;
+        }
+        .sponsor img {
+          height: 40px;
         }
 
         nav {
@@ -99,6 +113,7 @@ export class RLAwsApp extends connect(store)(LitElement) {
           display: block;
           max-width: 600px;
           margin: 0 auto;
+          padding: 0 20px;
         }
 
         .page {
@@ -139,6 +154,12 @@ export class RLAwsApp extends connect(store)(LitElement) {
     return html`
       <header>
         <h1>
+          <span class="sponsor">
+            sponsored by
+            <a href="https://www.bitdefender.ro/" target="_blank">
+              <img src="images/bitdefender_logo.png" alt="Bitdefender">
+            </a>
+          </span>
           <img src="images/rl_icon.png" class="logo" alt="" />
           RL
           <img src="images/aws_logo.png" style="margin-top: 8px;" class="logo" alt="" />
