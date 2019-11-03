@@ -7,7 +7,7 @@ import re
 RESOURCE_TYPES = {
     # {"ResourceType": (IdKey,) }
     "Instances": ("InstanceId",),
-    "KeyPairs": ("KeyName",),
+    "KeyPairs": ("KeyName", "KeyName",),
     "NetworkInterfaces": ("NetworkInterfaceId",),
     "Vpcs": ("VpcId",),
     "Addresses": ("AllocationId",),
@@ -88,7 +88,10 @@ class AWSResource():
         self.raw = raw_data
         res_desc = RESOURCE_TYPES[res_type]
         self.id = raw_data.get(res_desc[0], "")
-        self.name = self._extract_tag(raw_data, "Name")
+        if len(res_desc) >= 2 and res_desc[1]:
+            self.name = raw_data.get(res_desc[1], "")
+        else:
+            self.name = self._extract_tag(raw_data, "Name")
         self.owner = None
         self.reserved = self.name.startswith(self.RESERVED_PREFIX)
         ownrm = re.match(self.STUDENT_PATTERN, self.name)
