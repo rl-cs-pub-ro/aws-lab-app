@@ -37,6 +37,7 @@ Statement:
       "ec2:AssociateRouteTable", "ec2:ModifyVpcAttribute",
       "ec2:ModifyInstanceAttribute", "ec2:CreateNatGateway",
       "ec2:CreateNetworkInterface", "ec2:AttachNetworkInterface",
+      "ec2:DisassociateRouteTable", "ec2:ReplaceRouteTableAssociation",
     ]
     Resource: "*"
 
